@@ -4,7 +4,7 @@
     
     <!-- 右下角小人按钮 -->
     <button @click="showLawDialog = true" class="character-btn">
-      <span class="character">🧑‍⚖️</span>
+      <img :src="characterImage" alt="法律科普助手" class="character-img" />
       <span class="tooltip">法律科普</span>
     </button>
 
@@ -45,34 +45,73 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
-import * as maptilersdk from '@maptiler/sdk'
-import '@maptiler/sdk/dist/maptiler-sdk.css'
 
 // 状态
 const showLawDialog = ref(false)
 const mapContainer = ref(null)
 let map = null
 
+// 自定义小人图片路径
+const characterImage = '/images/character.png'  // 改成你的图片路径
+
 // Maptiler 配置
 const MAP_ID = '019cf982-4976-7dd7-9ac1-c31257405804'
 const API_KEY = 'cUeIpGNy8YxAK7lLuEB6'
 
+// 加载 Maptiler SDK (CDN 方式)
+const loadMaptilerSDK = () => {
+  return new Promise((resolve, reject) => {
+    // 检查是否已经加载
+    if (window.maptilersdk) {
+      resolve(window.maptilersdk)
+      return
+    }
+    
+    // 加载 CSS
+    const link = document.createElement('link')
+    link.rel = 'stylesheet'
+    link.href = 'https://cdn.maptiler.com/maptiler-sdk-js/v2.0.0/maptiler-sdk.css'
+    document.head.appendChild(link)
+    
+    // 加载 JS
+    const script = document.createElement('script')
+    script.src = 'https://cdn.maptiler.com/maptiler-sdk-js/v2.0.0/maptiler-sdk.umd.js'
+    script.onload = () => {
+      resolve(window.maptilersdk)
+    }
+    script.onerror = () => {
+      reject(new Error('Failed to load Maptiler SDK'))
+    }
+    document.head.appendChild(script)
+  })
+}
+
 // 初始化地图
-const initMap = () => {
+const initMap = async () => {
   if (!mapContainer.value) return
   
-  maptilersdk.config.apiKey = API_KEY
-  
-  map = new maptilersdk.Map({
-    container: mapContainer.value,
-    style: `https://api.maptiler.com/maps/${MAP_ID}/style.json?key=${API_KEY}`,
-    center: [0, 0],
-    zoom: 1,
-    pitch: 0,
-    bearing: 0
-  })
-  
-  map.addControl(new maptilersdk.NavigationControl(), 'top-right')
+  try {
+    const maptilersdk = await loadMaptilerSDK()
+    
+    // 配置 API Key
+    maptilersdk.config.apiKey = API_KEY
+    
+    // 创建地图
+    map = new maptilersdk.Map({
+      container: mapContainer.value,
+      style: `https://api.maptiler.com/maps/${MAP_ID}/style.json?key=${API_KEY}`,
+      center: [0, 0],
+      zoom: 1,
+      pitch: 0,
+      bearing: 0
+    })
+    
+    // 添加导航控件
+    map.addControl(new maptilersdk.NavigationControl(), 'top-right')
+    
+  } catch (error) {
+    console.error('地图加载失败:', error)
+  }
 }
 
 onMounted(() => {
@@ -107,24 +146,28 @@ onUnmounted(() => {
   width: 64px;
   height: 64px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #1a2a6c, #b21f1f);
-  border: none;
+  background: white;
+  border: 2px solid #1a2a6c;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
   transition: transform 0.2s, box-shadow 0.2s;
   z-index: 100;
+  overflow: hidden;
+  padding: 0;
 }
 
 .character-btn:hover {
   transform: scale(1.1);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
 }
 
-.character {
-  font-size: 2rem;
+.character-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .tooltip {
