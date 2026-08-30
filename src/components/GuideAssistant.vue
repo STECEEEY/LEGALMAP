@@ -402,7 +402,7 @@
     //     nextStep()
     //   }, step.duration || 8000)
     // }
-  }
+  
   
   function completeGuide() {
     isGuideActive.value = false
