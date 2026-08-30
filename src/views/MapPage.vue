@@ -146,7 +146,33 @@
         <button @click="resetView" class="control-btn">🌐 重置视图</button>
       </div>
     </div>
-
+<!-- ===== 比例尺（直接硬编码，不依赖地图控件） ===== -->
+<div class="scale-control-fixed">
+  <div class="scale-card-fixed">
+    <!-- 比例尺主体 -->
+    <div class="scale-line-wrap">
+      <div class="scale-line-fixed">
+        <span class="scale-zero">0</span>
+        <div class="scale-bar-fixed">
+          <!-- 5段刻度线 -->
+          <span class="scale-tick-fixed" v-for="i in 5" :key="i">
+            <span class="tick-line"></span>
+            <span class="tick-label" v-if="i % 2 === 0">{{ i * 2 }}</span>
+          </span>
+        </div>
+        <span class="scale-end" id="scaleEndVal">10</span>
+        <span class="scale-unit-fixed" id="scaleUnitVal">km</span>
+      </div>
+    </div>
+    <!-- 说明文字 -->
+    <div class="scale-note-fixed" id="scaleNoteVal">图上1厘米 = 实地10千米</div>
+    <div class="scale-subnote-fixed" id="scaleSubVal">每小格代表 2 千米</div>
+  </div>
+</div>
+<!-- ===== 审图号 ===== -->
+<div class="map-approval">
+  审图号：GS（2024）0650号
+</div>
     <!-- 返回首页按钮 -->
     <button class="back-home-btn" @click="goBackHome">← 返回首页</button>
   </div>
@@ -886,7 +912,6 @@ const loadMaptilerSDK = () => {
 // ============================================================
 // 初始化地图
 // ============================================================
-
 const initMap = async () => {
   if (!mapContainer.value) return
   
@@ -900,13 +925,19 @@ const initMap = async () => {
       center: [104.0, 35.0],
       zoom: 5,
       pitch: 0,
-      bearing: 0
+      bearing: 0,
+      scaleControl: false  // 禁用默认比例尺（我们手动添加）
     })
-    
-    map.addControl(new maptilersdk.NavigationControl(), 'top-right')
-    
+
     map.on('load', () => {
       console.log('✅ 地图加载完成')
+      
+      // ===== 添加 Maptiler 自带比例尺（左下角） =====
+      map.addControl(new maptilersdk.ScaleControl({
+        maxWidth: 150,
+        unit: 'metric'
+      }), 'bottom-left')
+      
       popup = new maptilersdk.Popup({
         closeButton: true,
         closeOnClick: false,
@@ -914,13 +945,92 @@ const initMap = async () => {
         className: 'risk-popup-container'
       })
       console.log('✅ Popup 已创建')
+      
+      // ===== 自定义比例尺初始化 =====
+      updateScaleDisplay(map)
+      
+      // ===== 监听缩放更新 =====
+      map.on('zoom', () => {
+        updateScaleDisplay(map)
+      })
+      
+      map.on('zoomend', () => {
+        updateScaleDisplay(map)
+      })
+      
+      map.on('moveend', () => {
+        updateScaleDisplay(map)
+      })
     })
     
   } catch (error) {
     console.error('❌ 地图加载失败:', error)
   }
 }
+// ============================================================
+// 更新比例尺显示
+// ============================================================
+// 更新比例尺显示（平滑版本）
+// ============================================================
 
+const updateScaleDisplay = (map) => {
+  const zoom = map.getZoom()
+  const endEl = document.getElementById('scaleEndVal')
+  const unitEl = document.getElementById('scaleUnitVal')
+  const noteEl = document.getElementById('scaleNoteVal')
+  const subEl = document.getElementById('scaleSubVal')
+  
+  // ===== 根据缩放计算比例尺数值（连续） =====
+  // 基准：zoom=5 时，比例尺约为 100km
+  // 每增加1级缩放，比例尺数值减半
+  const baseZoom = 5
+  const baseValue = 100 // km
+  
+  // 计算连续值
+  let rawValue = baseValue / Math.pow(2, zoom - baseZoom)
+  
+  // 限制范围
+  rawValue = Math.max(1, Math.min(500, rawValue))
+  
+  // ===== 选择合适的单位 =====
+  let endVal, unit, subVal
+  
+  if (rawValue >= 100) {
+    // 公里，保留整数
+    endVal = Math.round(rawValue / 10) * 10
+    unit = 'km'
+    subVal = (endVal / 5).toFixed(0)
+  } else if (rawValue >= 10) {
+    // 公里，保留1位小数
+    endVal = Math.round(rawValue * 2) / 2
+    unit = 'km'
+    subVal = (endVal / 5).toFixed(1)
+  } else if (rawValue >= 1) {
+    // 公里，保留2位小数
+    endVal = Math.round(rawValue * 10) / 10
+    unit = 'km'
+    subVal = (endVal / 5).toFixed(1)
+  } else {
+    // 小于1km，转为米
+    endVal = Math.round(rawValue * 1000)
+    unit = 'm'
+    subVal = (endVal / 5).toFixed(0)
+  }
+  
+  // ===== 生成说明文字 =====
+  let note
+  if (unit === 'm') {
+    note = `图上1厘米 = 实地${endVal}米`
+  } else {
+    note = `图上1厘米 = 实地${endVal}千米`
+  }
+  
+  // ===== 更新DOM =====
+  if (endEl) endEl.textContent = endVal
+  if (unitEl) unitEl.textContent = unit
+  if (noteEl) noteEl.textContent = note
+  if (subEl) subEl.textContent = `每小格代表 ${subVal} ${unit}`
+}
 // ============================================================
 // 加载图层
 // ============================================================
@@ -1132,6 +1242,15 @@ onMounted(async () => {
 onUnmounted(() => {
   console.log('🧹 清理MapPage资源')
   
+  // ===== 清理所有图例 =====
+  const legendIds = ['trespasser-legend', 'risk-legend', 'damage-legend']
+  legendIds.forEach(id => {
+    const el = document.getElementById(id)
+    if (el) {
+      if (el._cleanup) el._cleanup()
+      el.remove()
+    }
+  })
   if (animationId) {
     cancelAnimationFrame(animationId)
     animationId = null
@@ -1178,6 +1297,7 @@ onUnmounted(() => {
 .map {
   width: 100%;
   height: 100%;
+  position: relative;
 }
 
 /* ===== 中国风装饰 ===== */
@@ -1269,8 +1389,8 @@ onUnmounted(() => {
 /* ===== 图层指示器 ===== */
 .layer-indicator {
   position: fixed;
-  top: 80px;
-  right: 20px;
+  top: 10px;
+  right: 80px;
   z-index: 100;
   background: rgba(255, 248, 235, 0.9);
   backdrop-filter: blur(8px);
@@ -1528,7 +1648,39 @@ onUnmounted(() => {
   from { transform: translateY(30px) scale(0.96); opacity: 0; }
   to { transform: translateY(0) scale(1); opacity: 1; }
 }
+/* ===== 审图号 ===== */
+.map-approval {
+  position: fixed;
+  bottom: 0px;
+  left: 400px;
+  z-index: 50;
+  font-size: 11px;
+  color: rgba(24, 16, 8, 0.877);
+  font-family: '华文楷体', 'KaiTi', 'PingFang SC', sans-serif;
+  letter-spacing: 0.5px;
+  background: rgba(255, 248, 235, 0.3);
+  padding: 4px 12px;
+  border-radius: 4px;
+  backdrop-filter: blur(2px);
+  pointer-events: none;
+  user-select: none;
+}
 
+@media (max-width: 768px) {
+  .map-approval {
+    font-size: 10px;
+    bottom: 100px;
+    padding: 3px 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .map-approval {
+    font-size: 9px;
+    bottom: 80px;
+    padding: 2px 8px;
+  }
+}
 .invite-icon { font-size: 48px; text-align: center; margin-bottom: 8px; }
 .invite-title {
   font-size: 22px;
@@ -1687,6 +1839,277 @@ onUnmounted(() => {
 .popup-row { font-size: 12px; color: #5a4a3a; padding: 2px 10px; line-height: 1.6; }
 .popup-label { font-weight: 600; color: #3a2a1a; }
 .popup-disclaimer { margin-top: 8px; padding-top: 8px; border-top: 1px dashed rgba(180, 120, 60, 0.15); font-size: 11px; color: #8a7a6a; text-align: center; font-style: italic; }
+/* ===== 比例尺样式 ===== */
+.scale-control-fixed {
+  position: fixed;
+  top: 120px;
+  left: 20px;
+  z-index: 100;
+  user-select: none;
+}
+
+.scale-card-fixed {
+  background: rgba(255, 248, 235, 0.92);
+  backdrop-filter: blur(8px);
+  border-radius: 12px;
+  padding: 14px 20px 16px;
+  box-shadow: 0 4px 20px rgba(139, 115, 85, 0.10);
+  border: 1px solid rgba(180, 120, 60, 0.10);
+  min-width: 200px;
+}
+
+.scale-line-wrap {
+  display: flex;
+  justify-content: center;
+}
+
+.scale-line-fixed {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-family: '华文楷体', 'KaiTi', serif;
+}
+
+.scale-zero {
+  font-size: 13px;
+  font-weight: 600;
+  color: #4a3a2a;
+  margin-right: 2px;
+}
+
+.scale-bar-fixed {
+  display: flex;
+  align-items: flex-end;
+  height: 28px;
+  gap: 0;
+  position: relative;
+  min-width: 180px;
+}
+
+/* 每段刻度 */
+.scale-tick-fixed {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+  position: relative;
+}
+
+/* 刻度线 - 交替长短 */
+.scale-tick-fixed:nth-child(odd) .tick-line {
+  height: 10px;
+  border-left: 2px solid #4a3a2a;
+}
+
+.scale-tick-fixed:nth-child(even) .tick-line {
+  height: 16px;
+  border-left: 2.5px solid #4a3a2a;
+}
+
+.tick-line {
+  display: block;
+  width: 0;
+  position: absolute;
+  top: 0;
+}
+
+/* 底部基线 */
+.scale-bar-fixed::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2.5px;
+  background: #4a3a2a;
+  border-radius: 1px;
+}
+
+/* 刻度标签（偶数刻度显示数字） */
+.tick-label {
+  position: absolute;
+  bottom: -18px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #4a3a2a;
+}
+
+.scale-end {
+  font-size: 13px;
+  font-weight: 700;
+  color: #3a2a1a;
+  margin-left: 2px;
+}
+
+.scale-unit-fixed {
+  font-size: 12px;
+  font-weight: 500;
+  color: #6a5a4a;
+  margin-left: 0px;
+}
+
+.scale-note-fixed {
+  text-align: center;
+  font-size: 12px;
+  color: #6a5a4a;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed rgba(180, 120, 60, 0.15);
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+
+.scale-subnote-fixed {
+  text-align: center;
+  font-size: 11px;
+  color: #8a7a6a;
+  margin-top: 4px;
+  font-weight: 400;
+}
+
+/* ===== 响应式 ===== */
+@media (max-width: 768px) {
+  .scale-control-fixed {
+    bottom: 100px;
+    left: 12px;
+  }
+  .scale-card-fixed {
+    padding: 10px 14px 12px;
+    min-width: 150px;
+  }
+  .scale-bar-fixed {
+    min-width: 120px;
+    height: 22px;
+  }
+  .scale-tick-fixed:nth-child(odd) .tick-line {
+    height: 8px;
+  }
+  .scale-tick-fixed:nth-child(even) .tick-line {
+    height: 12px;
+  }
+  .tick-label {
+    font-size: 9px;
+    bottom: -14px;
+  }
+  .scale-zero, .scale-end {
+    font-size: 11px;
+  }
+  .scale-unit-fixed {
+    font-size: 10px;
+  }
+  .scale-note-fixed {
+    font-size: 10px;
+    margin-top: 8px;
+    padding-top: 8px;
+  }
+  .scale-subnote-fixed {
+    font-size: 9px;
+  }
+}
+
+@media (max-width: 480px) {
+  .scale-control-fixed {
+    bottom: 85px;
+    left: 8px;
+  }
+  .scale-card-fixed {
+    padding: 8px 10px 10px;
+    min-width: 120px;
+  }
+  .scale-bar-fixed {
+    min-width: 80px;
+    height: 18px;
+  }
+  .scale-tick-fixed:nth-child(odd) .tick-line {
+    height: 6px;
+  }
+  .scale-tick-fixed:nth-child(even) .tick-line {
+    height: 10px;
+  }
+  .tick-label {
+    font-size: 8px;
+    bottom: -12px;
+  }
+  .scale-zero, .scale-end {
+    font-size: 10px;
+  }
+  .scale-unit-fixed {
+    font-size: 9px;
+  }
+  .scale-note-fixed {
+    font-size: 9px;
+    margin-top: 6px;
+    padding-top: 6px;
+  }
+  .scale-subnote-fixed {
+    font-size: 8px;
+  }
+}
+/* ===== 响应式 ===== */
+@media (max-width: 768px) {
+  .custom-scale-control {
+    bottom: 120px;
+    left: 12px;
+  }
+  
+  .scale-card {
+    padding: 10px 14px 12px;
+    min-width: 150px;
+  }
+  
+  .scale-bar {
+    min-width: 100px;
+  }
+  
+  .scale-mark {
+    font-size: 12px;
+  }
+  
+  .scale-unit {
+    font-size: 11px;
+  }
+  
+  .scale-note {
+    font-size: 11px;
+  }
+  
+  .scale-subnote {
+    font-size: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .custom-scale-control {
+    bottom: 100px;
+    left: 8px;
+  }
+  
+  .scale-card {
+    padding: 8px 10px 10px;
+    min-width: 120px;
+  }
+  
+  .scale-bar {
+    min-width: 70px;
+  }
+  
+  .scale-mark {
+    font-size: 10px;
+  }
+  
+  .scale-unit {
+    font-size: 10px;
+  }
+  
+  .scale-note {
+    font-size: 10px;
+  }
+  
+  .scale-subnote {
+    font-size: 9px;
+  }
+}
 
 /* ===== 响应式 ===== */
 @media (max-width: 768px) {
@@ -1738,5 +2161,63 @@ onUnmounted(() => {
   .popup-scroll { padding: 0 14px 14px; }
   .popup-header h2 { font-size: 18px; }
   .popup-icon { font-size: 30px; }
+}
+</style>
+
+<style>
+
+/* ============================================================
+   ===== 比例尺样式（全局，用于动态创建的 DOM） =====
+   ============================================================ */
+/* ===== Maptiler 比例尺样式美化（线段清晰可见） ===== */
+:deep(.maplibregl-ctrl-scale) {
+  font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif !important;
+  background: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(8px) !important;
+  border: 1px solid rgba(60, 60, 60, 0.15) !important;
+  border-radius: 10px !important;
+  padding: 8px 14px 10px !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08) !important;
+  min-width: 120px !important;
+}
+
+/* 比例尺线段 - 用 background 而不是 border */
+:deep(.maplibregl-ctrl-scale .maplibregl-ctrl-scale-line) {
+  border: none !important;
+  background: #2c3e50 !important;
+  height: 4px !important;
+  border-radius: 2px !important;
+  margin: 4px 0 !important;
+  position: relative !important;
+}
+
+/* 比例尺的刻度标记 - 用伪元素模拟 */
+:deep(.maplibregl-ctrl-scale .maplibregl-ctrl-scale-line .maplibregl-ctrl-scale-mark) {
+  border-color: #2c3e50 !important;
+  border-width: 2px !important;
+  height: 10px !important;
+  position: absolute !important;
+  top: -6px !important;
+}
+
+/* 比例尺文字 */
+:deep(.maplibregl-ctrl-scale .maplibregl-ctrl-scale-line .maplibregl-ctrl-scale-label) {
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  color: #2c3e50 !important;
+  font-family: 'Georgia', serif !important;
+}
+
+/* 比例尺单位 */
+:deep(.maplibregl-ctrl-scale .maplibregl-ctrl-scale-line .maplibregl-ctrl-scale-unit) {
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  color: #4a4a4a !important;
+  margin-left: 4px !important;
+}
+
+/* 比例尺的 0 标记 */
+:deep(.maplibregl-ctrl-scale .maplibregl-ctrl-scale-line .maplibregl-ctrl-scale-label:first-child) {
+  margin-right: 4px !important;
 }
 </style>
