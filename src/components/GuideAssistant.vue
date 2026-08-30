@@ -387,12 +387,12 @@
     }
   
     // 语音播报 - 只播报一次
-    if (props.accessibilityMode && !spokenSteps.value.has(stepIndex)) {
-      const msg = step.message.replace(/[📌🟢🏛️🔥🚩🌿⚖️🎉🗺️🚀]/g, '').trim()
-      if (msg) {
-        speak(msg)
-        spokenSteps.value.add(stepIndex)
-      }
+    // if (props.accessibilityMode && !spokenSteps.value.has(stepIndex)) {
+    //   const msg = step.message.replace(/[📌🟢🏛️🔥🚩🌿⚖️🎉🗺️🚀]/g, '').trim()
+    //   if (msg) {
+    //     speak(msg)
+    //     spokenSteps.value.add(stepIndex)
+    //   }
     }
   
     // 自动播放
