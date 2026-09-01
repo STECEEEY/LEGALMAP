@@ -301,7 +301,7 @@
       if (callback) callback()
     }
     window.speechSynthesis.speak(utterance)
-  }
+  
   
   function handleVoiceCommand(text) {
     console.log('🔍 处理语音指令:', text)
