@@ -202,9 +202,9 @@
   
       isListening.value = false
   
-      if (event.error === 'not-allowed') {
-        speak('请允许使用麦克风权限')
-      }
+      // if (event.error === 'not-allowed') {
+      //   speak('请允许使用麦克风权限')
+      // }
   
       // 如果是网络问题，自动重试
       if (event.error === 'network' && isGuideActive.value) {
@@ -259,7 +259,7 @@
         console.log('🎤 语音识别已开启')
         // 给用户反馈
         setTimeout(() => {
-          speak('请说"下一页"继续探索')
+          // speak('请说"下一页"继续探索')
         }, 500)
       } catch (e) {
         console.warn('⚠️ 语音识别启动失败:', e)
@@ -283,12 +283,12 @@
     }
   }
   
-  function speak(text, callback) {
-    // 如果浏览器不支持语音合成，直接回调
-    if (!window.speechSynthesis) {
-      if (callback) callback()
-      return
-    }
+  // function speak(text, callback) {
+  //   // 如果浏览器不支持语音合成，直接回调
+  //   if (!window.speechSynthesis) {
+  //     if (callback) callback()
+  //     return
+  //   }
   
     // 取消之前的语音
     window.speechSynthesis.cancel()
@@ -331,7 +331,7 @@
           }
         }
         // 播放确认音效
-        speak('好的')
+        // speak('好的')
         // 延迟一点执行下一步，让用户听到反馈
         setTimeout(() => {
           nextStep()
@@ -499,7 +499,7 @@
       startListening()
     } catch (error) {
       console.warn('⚠️ 麦克风权限被拒绝:', error)
-      speak('请允许使用麦克风，或点击"下一步"按钮手动操作')
+      // speak('请允许使用麦克风，或点击"下一步"按钮手动操作')
     }
   
     isGuideActive.value = true
@@ -516,7 +516,7 @@
     })
   
     if (recognition.value && isListening.value) {
-      speak('请说"下一页"')
+      // speak('请说"下一页"')
     } else {
       // 尝试重新启动
       startListening()
@@ -551,7 +551,7 @@
               autoPlayTimer = null
             }
           }
-          speak('好的')
+          // speak('好的')
           setTimeout(() => {
             nextStep()
           }, 300)
