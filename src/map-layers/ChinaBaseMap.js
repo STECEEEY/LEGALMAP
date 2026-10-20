@@ -28,10 +28,10 @@ export const loadChinaBaseMap = (map, options = {}) => {
       borderLayerId = 'china-border-line',
       fillColor = '#d4e8f0',
       fillOpacity = 0.15,
-      lineColor = '#1a2a6c',
+      lineColor = '#000000',
       lineWidth = 1.5,
       lineOpacity = 0.6,
-      borderColor = '#b21f1f',
+      borderColor = '#000000',
       borderWidth = 2.5,
       borderOpacity = 0.8
     } = options
