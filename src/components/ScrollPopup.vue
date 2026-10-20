@@ -58,15 +58,15 @@
               <div style="margin-top: 8px; background: rgba(200,180,150,0.12); padding: 10px 14px; border-radius: 6px; border-left: 3px solid #8a7a5a;">
                 <p style="margin: 0; line-height: 1.7;">
                   <strong>立法目的</strong>（法典第1条）：<br>
-                  「为了……推进生态文明建设，实现人与自然和谐共生，制定本法。」
+                  「为了保护生态环境，防治污染和其他公害，保障公众健康和生态环境权益，维护生态安全，推动绿色低碳发展，建设生态文明，全面推进美丽中国建设，加快推进人与自然和谐共生的现代化，实现中华民族永续发展，根据宪法，制定本法。」
                 </p>
                 <p style="margin: 6px 0 0; line-height: 1.7;">
                   <strong>基本原则</strong>（法典第6条）：<br>
-                  「生态环境保护应当坚持<strong>生态优先</strong>、系统治理、绿色发展、损害担责的原则。」
+                  「生态环境保护应当坚持<strong>预防为主、系统治理、生态优先、绿色发展、公众参与、损害担责</strong>的原则。」
                 </p>
                 <p style="margin: 6px 0 0; line-height: 1.7;">
                   <strong>生态环境定义</strong>（法典第2条）：<br>
-                  「本法所称生态环境，是指影响人类生存和发展的各种天然的和经过人工改造的自然因素的总体。」
+                  「本法所称生态环境，是指影响人类生存和发展以及生态系统功能的各种天然的和经过人工改造的自然空间、自然因素及其相互联系与作用的总体。」
                 </p>
               </div>
             </div>
@@ -76,39 +76,82 @@
               <h3>法典五大编</h3>
               <div class="scroll-grid">
                 <div class="scroll-grid-item">
+                  <span style="font-weight: 600;">总则</span>
+                  <span style="font-size: 0.85em; color: #8a7a6a;">基础性、统领性规定</span>
+                </div>
+                <div class="scroll-grid-item">
                   <span style="font-weight: 600;">污染防治</span>
-                  <span style="font-size: 0.85em; color: #8a7a6a;">水、大气、土壤</span>
+                  <span style="font-size: 0.85em; color: #8a7a6a;">大气、水、海洋、土壤、固废、噪声等</span>
                 </div>
                 <div class="scroll-grid-item">
                   <span style="font-weight: 600;">生态保护</span>
-                  <span style="font-size: 0.85em; color: #8a7a6a;">生物多样性、自然保护地</span>
+                  <span style="font-size: 0.85em; color: #8a7a6a;">生态系统、自然资源、物种、生态修复</span>
                 </div>
                 <div class="scroll-grid-item">
                   <span style="font-weight: 600;">绿色低碳发展</span>
-                  <span style="font-size: 0.85em; color: #8a7a6a;">循环经济、清洁生产</span>
-                </div>
-                <div class="scroll-grid-item">
-                  <span style="font-weight: 600;">法律责任</span>
-                  <span style="font-size: 0.85em; color: #8a7a6a;">行政、民事、刑事</span>
+                  <span style="font-size: 0.85em; color: #8a7a6a;">循环经济、能源节约、气候变化</span>
                 </div>
                 <div class="scroll-grid-item" style="grid-column: span 2;">
-                  <span style="font-weight: 600;">生态环境监督管理</span>
-                  <span style="font-size: 0.85em; color: #8a7a6a;">监管体制、制度、机制</span>
+                  <span style="font-weight: 600;">法律责任和附则</span>
+                  <span style="font-size: 0.85em; color: #8a7a6a;">罚则设置、过罚相当、精准执法</span>
                 </div>
               </div>
             </div>
 
-            <!-- 板块三：秦岭非法穿越案 -->
+            <!-- 板块三：生态保护编亮点 -->
+            <div class="scroll-section">
+              <h3>生态保护编 · 守护山河</h3>
+              <div style="margin-top: 4px; display: flex; flex-direction: column; gap: 6px;">
+                <div style="background: rgba(255,248,235,0.5); padding: 8px 14px; border-radius: 6px; border: 1px solid rgba(200,180,150,0.15);">
+                  <p style="margin: 0; line-height: 1.8;">
+                    <strong>首次系统规范生态修复全流程</strong><br>
+                    现行单行法律缺少关于生态修复总体性、原则性、程序性的规定。法典生态保护编首次对生态修复活动的原则、程序和重点领域作出系统规定，既适用于各级政府及有关部门开展的生态修复活动，也适用于有关单位和个人造成生态破坏后依法应承担的生态修复义务。
+                  </p>
+                </div>
+                <div style="background: rgba(255,248,235,0.5); padding: 8px 14px; border-radius: 6px; border: 1px solid rgba(200,180,150,0.15);">
+                  <p style="margin: 0; line-height: 1.8;">
+                    <strong>细化人与野生动物共处规则</strong><br>
+                    法典设立“野生动物保护”专节，着重平衡野生动物保护与群众生命财产安全。针对野生动物与家畜争草场问题，增加规定：县级以上地方人民政府林业草原主管部门核定草原载畜量时，应当考虑野生动物生存繁衍合理需求。
+                  </p>
+                </div>
+                <div style="background: rgba(255,248,235,0.5); padding: 8px 14px; border-radius: 6px; border: 1px solid rgba(200,180,150,0.15);">
+                  <p style="margin: 0; line-height: 1.8;">
+                    <strong>固化治沙经验 填补立法空白</strong><br>
+                    法典把我国多年防沙治沙和“三北”工程的成功经验上升为法律，首次专门规范荒漠生态系统保护，明确其重要生态功能，与森林、草原、湿地等其他生态系统同等受到法律保护。
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <!-- 板块四：法律责任和附则编亮点 -->
+            <div class="scroll-section">
+              <h3>法律责任和附则编 · 精准执法</h3>
+              <div style="margin-top: 4px; display: flex; flex-direction: column; gap: 6px;">
+                <div style="background: rgba(255,248,235,0.5); padding: 8px 14px; border-radius: 6px; border: 1px solid rgba(200,180,150,0.15);">
+                  <p style="margin: 0; line-height: 1.8;">
+                    <strong>新增罚则 违法成本“水涨船高”</strong><br>
+                    新增多项处罚条款，针对群众反映强烈的环境违法行为逐一明确法律责任。光污染入法：对广告屏、广告牌、灯箱、媒体立面墙等设施产生光污染，未采取有效措施防止、减轻光污染，干扰他人正常生活、交通出行的，由有关部门责令改正；拒不改正的，<strong>处5000元以上5万元以下罚款</strong>。对已有法律责任规定的情节较重环境违法行为，坚持罚款力度不降低，部分违法行为进一步提高处罚额度，让违法成本高于违法收益。
+                  </p>
+                </div>
+                <div style="background: rgba(255,248,235,0.5); padding: 8px 14px; border-radius: 6px; border: 1px solid rgba(200,180,150,0.15);">
+                  <p style="margin: 0; line-height: 1.8;">
+                    <strong>告别执法“一刀切”</strong><br>
+                    坚持科学合理设置法律责任，针对不同违法情形、违法主体不搞“一刀切”，精准区分违法环节与主体类型，差异化设置罚则，实现过罚相当，让执法处罚更精准、更合理，确保处罚落地执行。
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <!-- 板块五：秦岭非法穿越案 -->
             <div class="scroll-section">
               <h3>法治抵达群山深处 · 秦岭案</h3>
               <p style="font-size: 0.9em; color: #7a6a5a; margin-bottom: 6px;">
-                2026年7月 · 西安铁路运输中级法院 · 民事公益诉讼
+                西安铁路运输中级法院 · 民事公益诉讼 · 新时代推动法治进程2025年度十大提名案件
               </p>
               <p style="line-height: 1.8; margin-bottom: 8px;">
                 某户外组织在 <strong>2024年1月至2025年6月</strong> 期间，通过线上平台招募参与者，
-                先后 <strong>25次</strong> 组织人员进入秦岭核心保护区，累计 <strong>148人次</strong> 参与，
-                收费共计 <strong>30,894元</strong>，对太白山国家级自然保护区、牛背梁国家级自然保护区的
-                生态环境造成持续性损害。
+                先后 <strong>25次</strong> 组织人员进入鳌山、顶棚梁、光头山等位于海拔2000米以上的秦岭核心保护区及国家级自然保护区开展登山、穿越活动，
+                累计 <strong>148人次</strong> 参与，收费共计 <strong>30,894元</strong>，对太白山国家级自然保护区、牛背梁国家级自然保护区的生态环境和秦岭脆弱的高海拔生态系统造成持续性损害。
               </p>
 
               <div class="case-timeline">
@@ -130,46 +173,44 @@
                   <span class="case-dot"></span>
                   <div>
                     <strong>③ 检察介入</strong>
-                    <p>检察机关提起民事公益诉讼，申请诉前禁止令</p>
+                    <p>检察机关提起民事公益诉讼，本着生态优先、预防为主原则申请诉前禁止令，要求苏某立即停止组织穿越活动</p>
                   </div>
                 </div>
                 <div class="case-step">
                   <span class="case-dot"></span>
                   <div>
                     <strong>④ 法院审理</strong>
-                    <p>西安铁路运输中级法院当庭宣判，支持全部诉请</p>
+                    <p>西安铁路运输中级法院当庭宣判，支持检察院全部诉请</p>
                   </div>
                 </div>
                 <div class="case-step case-step-last">
                   <span class="case-dot case-dot-green"></span>
                   <div>
                     <strong>⑤ 判决结果</strong>
-                    <p>判令<strong>停止组织穿越</strong>、<strong>赔偿生态修复费用1万元</strong>、<strong>公开赔礼道歉</strong></p>
+                    <p>判令<strong>停止组织穿越及登山活动</strong>、<strong>赔偿生态环境修复费用1万元</strong>、<strong>在省级媒体上公开赔礼道歉</strong></p>
                   </div>
                 </div>
               </div>
 
               <div style="margin-top: 10px; padding: 10px 14px; background: rgba(26,42,108,0.06); border-radius: 8px; border-left: 3px solid #1a2a6c;">
                 <p style="margin: 0; line-height: 1.8;">
-                  <strong>案件意义：</strong>
-                  本案是陕西省首例个人非法组织穿越秦岭核心保护区民事公益诉讼案，
-                  标志着生态环境法典时代，<strong>法律对生态破坏行为的追责从行政监管延伸到了民事公益诉讼领域</strong>，
-                  为类似案件提供了重要的司法示范。
+                  <strong>案件评述：</strong>
+                  本案系全国法院首例非法穿越自然保护区核心区生态环境民事公益诉讼案。人民法院按照“明确规则+惩戒预防+生态恢复+综合治理”的办案思路，运用诉前禁止令保全措施预防性生态保护司法手段，及时制止生态环境损害扩大；综合适用生态环境侵权证明责任、专家证人意见，构建生态修复金综合量化模型，破解事实认定难、因果关系确定难、生态修复金鉴定难等问题。审理后还通过联席会议、司法保护项目、审判“进乡村、进校园、进机关”活动深化综合治理，实现政治、法律、社会、生态“四个效果”的统一。
                 </p>
                 <p style="font-size: 1.05em; color: #1a2a6c; font-weight: 600; margin: 6px 0 0; text-align: center; font-style: italic;">
                   「法律不仅在城市，也抵达群山深处」
                 </p>
                 <p style="font-size: 0.8em; color: #8a7a6a; margin: 2px 0 0; text-align: center;">
-                  —— 据2026年7月陕西日报报道
+                  —— 2026年3月最高人民法院公众号
                 </p>
               </div>
             </div>
 
-            <!-- 板块四：法典在身边 -->
+            <!-- 板块六：法典在身边 -->
             <div class="scroll-section">
               <h3>法典在身边</h3>
               <p style="line-height: 1.8; margin-bottom: 6px;">
-                生态环境法典不只是一部遥远的法律，它关系到每个人的日常生活。
+                生态环境法典不只是一部遥远的法律，它关系到每个人的日常生活。习近平总书记强调：“良好生态环境是最公平的公共产品，是最普惠的民生福祉。”
               </p>
 
               <div style="margin-top: 4px; display: flex; flex-direction: column; gap: 6px;">
@@ -205,7 +246,7 @@
               </div>
             </div>
 
-            <!-- 板块五：生态修复与补偿 -->
+            <!-- 板块七：生态修复与补偿 -->
             <div class="scroll-section">
               <h3>生态修复与补偿机制</h3>
               <p style="line-height: 1.8;">
@@ -232,7 +273,7 @@
             <!-- ===== 分隔线 ===== -->
             <div style="height: 2px; background: linear-gradient(90deg, transparent, rgba(180,150,100,0.2), transparent); margin: 16px 0;"></div>
 
-            <!-- ===== 板块六：知识小测试 ===== -->
+            <!-- ===== 板块八：知识小测试 ===== -->
             <div class="quiz-section">
               <h3>法典知识小测试</h3>
               <p style="font-size: 0.85em; color: #8a7a6a; margin-bottom: 10px;">
@@ -389,7 +430,7 @@ const quizQuestions = ref([
     correct: 2,
     selected: null,
     answered: false,
-    source: '2026年7月西安铁路运输中级法院判决'
+    source: '西安铁路运输中级法院判决'
   },
   {
     text: '根据法典，个人随意倾倒生活垃圾，拒不改正的，可能会面临什么处罚？',
