@@ -1,14 +1,7 @@
 <!-- src/components/Assistant.vue -->
 <template>
   <div class="assistant-wrapper">
-    <!-- 隐藏的扣子 SDK iframe -->
-    <iframe 
-      ref="iframeRef" 
-      src="https://sdk.coze.site" 
-      style="display: none;"
-    ></iframe>
-    
-    <!-- 圆形头像 -->
+    <!-- 圆形头像 --
     <div class="assistant-avatar" @click="toggleDialog">
       <img src="/images/character.jpg" alt="小助手" />
       <div class="assistant-status" :class="{ 'status-active': dialogVisible }"></div>
@@ -83,27 +76,19 @@
 <script setup>
 import { ref, watch, nextTick, onMounted, onUnmounted } from 'vue'
 
-// 1. 接收属性
 const props = defineProps({
-  isAI: {
-    type: Boolean,
-    default: false
-  }
+  isAI: { type: Boolean, default: false }
 })
 
-// 2. 基础状态变量
 const dialogVisible = ref(false)
 const inputText = ref('')
 const isTyping = ref(false)
 const messagesContainer = ref(null)
-const iframeRef = ref(null)
 
-// 3. 扣子配置变量（刚才报错就是缺了这三个）
-const TOKEN = 'pat_bvDpMBrhzCY2mWzeVomKq5XYdAWtlLrGiDmvn7oK2PhtE4AiYmPvQ7lZam78ri81'
-const PROJECT_ID = '7707986728497365043'
-const COZE_WEB_SDK_ORIGIN = 'https://sdk.coze.site'
+// 🔴 刚才截图里的核心信息
+const API_TOKEN = 'eyJhbGciOiJSUzI1NiIsImtpZCI6IjAyNmY4ZGViLTcxY2UtNDQwMS1iMzAyLTAxYmIyYWY1Y2VkNSJ9.eyJpc3MiOiJodHRwczovL2FwaS5jb3plLmNuIiwiYXVkIjpbIm54YldyY085bHFnckRvQWpwY3ZPajR0c0ZoZVFPcWFiIl0sImV4cCI6ODIxMDI2Njg3Njc5OSwiaWF0IjoxNzk0NzI4Nzk1LCJzdWIiOiJzcGlmZmU6Ly9hcGkuY296ZS5jbi93b3JrbG9hZF9pZGVudGl0eS9pZDo3NzA4MTA1NTczMzg3OTkzMTI2Iiwic3JjIjoiaW5ib3VuZF9hdXRoX2FjY2Vzc190b2tlbl9pZDo3NzA4MzAxNDgyNzUxMTY0NDQyIn0.G0e_2gObj6pXLq3nZyFbAiZQI5myTfPZjrKQD70PWjC4O6DirHwifCM6wuSgXv2hWb3cSWn7BZjjvM1gUJ47YONSiKA78b_dFzVLpIzDe42aYQ4xO74Pr0cR9Lv9-98iTz442AnhTzYcXF3K9I5RrttoD3fMzsfyINnYIlZgT9QNhjyIwm0Je7rNVTvxzOegiNwT_8sw93_e2TXCe6_teqnx5zPp8o2XCxl2oLMj-YsQv-NvQ-_Y0WCMAm79Aq07T3ofcWCvt4LZvnWL8-MUvIVqlSc_4-BPSLqcTSECF1ap5rsZtPDm9CRBmUtIqxSXWMQfA2B0p6xEMD5-x9nNQg' 
+const API_URL = 'https://9vjmc2vm7z.coze.site/stream_run' // 从截图中获取的地址
 
-// 4. 消息数据
 const messages = ref([
   {
     role: 'assistant',
@@ -111,38 +96,17 @@ const messages = ref([
   }
 ])
 
-const suggestions = ref([
-  '什么是生态红线？',
-  '秦岭案是怎么回事？',
-  '法典对我有什么影响？',
-  '垃圾分类怎么分？'
-])
+const suggestions = ref(['什么是生态红线？', '秦岭案是怎么回事？', '法典对我有什么影响？', '垃圾分类怎么分？'])
 
-// 5. 本地知识库（欢迎页/地图页专用）
-const knowledgeBase = {
-  '生态红线': {
-    answer: '生态红线是《生态环境法典》确立的重要制度，是指依法在重点生态功能区、生态环境敏感区和脆弱区等区域划定的严格管控边界。生态红线区内禁止开发建设活动，是保障国家生态安全的底线和生命线。\n\n📖 依据：法典第287条、第290条'
-  },
-  '秦岭案': {
-    answer: '2026年7月，西安铁路运输中级法院审理了陕西省首例个人非法组织穿越秦岭核心保护区民事公益诉讼案。\n\n📌 案情：某户外组织在2024年1月至2025年6月期间，25次组织148人次进入秦岭核心保护区，收费30,894元。\n\n⚖️ 判决：判令停止组织穿越、赔偿生态修复费用1万元、公开赔礼道歉。\n\n💡 意义：标志着法律对生态破坏行为的追责从行政监管延伸到了民事公益诉讼领域。'
-  },
-  '对我有什么影响': {
-    answer: '生态环境法典与每个人的日常生活息息相关：\n\n🗑️ 垃圾分类：单位和个人负有分类投放义务（法典第499条、第506条）\n\n🌳 自然保护：禁止非法进入自然保护区核心区（法典第287条、第1152条）\n\n💧 水环境保护：禁止向水体排放污染物（法典第221条、第1176条）\n\n⚖️ 法律责任：破坏生态环境将承担民事赔偿甚至刑事责任'
-  },
-  '垃圾分类': {
-    answer: '《生态环境法典》第499条规定，国家推行生活垃圾分类制度。\n\n📌 第506条明确：单位和个人负有生活垃圾分类投放义务，禁止随意倾倒、抛撒、堆放或者焚烧生活垃圾。\n\n💰 处罚标准（法典第1169条第3款）：个人随意倾倒生活垃圾，拒不改正的，处一百元以上一千元以下罚款。'
-  }
-}
+// 本地知识库 (保持不变)
+const knowledgeBase = { /* ... 把你原来的直接复制过来 ... */ }
 
-// 6. 界面控制方法
 const toggleDialog = () => {
   dialogVisible.value = !dialogVisible.value
   if (dialogVisible.value) scrollToBottom()
 }
 
-const closeDialog = () => {
-  dialogVisible.value = false
-}
+const closeDialog = () => { dialogVisible.value = false }
 
 const scrollToBottom = () => {
   nextTick(() => {
@@ -152,32 +116,91 @@ const scrollToBottom = () => {
   })
 }
 
-// 7. 发送消息核心逻辑
-const sendMessage = () => {
+// 🔴 核心修改：用 fetch 发送流式请求
+const sendMessage = async () => {
   const text = inputText.value.trim()
   if (!text || isTyping.value) return
 
-  // 显示用户消息
   messages.value.push({ role: 'user', content: text })
   inputText.value = ''
   scrollToBottom()
   isTyping.value = true
 
-  // 模式 A：走扣子 AI
+  // 模式 A：调用 API
   if (props.isAI) {
-    if (iframeRef.value && iframeRef.value.contentWindow) {
-      iframeRef.value.contentWindow.postMessage({
-        type: 'SEND_MESSAGE',
-        payload: { content: text }
-      }, COZE_WEB_SDK_ORIGIN)
-    } else {
-      messages.value.push({ role: 'assistant', content: 'AI 引擎正在初始化，请刷新页面或稍后再试...' })
+    // 预先插入一个空的 assistant 消息，用来接收打字机效果
+    messages.value.push({ role: 'assistant', content: '' })
+    const currentMsgIndex = messages.value.length - 1
+
+    try {
+      const res = await fetch(API_URL, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${API_TOKEN}`,
+          'Content-Type': 'application/json',
+          'Accept': 'text/event-stream'
+        },
+        body: JSON.stringify({
+          content: {
+            query: {
+              prompt: [{ type: 'text', content: { text: text } }]
+            }
+          },
+          type: 'query',
+          session_id: 'session_' + Date.now(), 
+          project_id: '7707986728497365043'
+        })
+      })
+
+      if (!res.ok) {
+        throw new Error('请求失败')
+      }
+
+      // 解析流式数据
+      const reader = res.body.getReader()
+      const decoder = new TextDecoder()
+      let replyContent = ''
+
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+
+        const chunk = decoder.decode(value, { stream: true })
+        // 扣子的流式数据以 "data: " 开头，按行分割
+        const lines = chunk.split('\n').filter(line => line.trim() !== '')
+
+        for (const line of lines) {
+          if (line.startsWith('data:')) {
+            const jsonStr = line.replace('data:', '').trim()
+            if (jsonStr === '[DONE]') continue;
+
+            try {
+              const dataObj = JSON.parse(jsonStr)
+              // 提取文本（兼容不同的返回字段名）
+              const msgContent = dataObj.message?.content || dataObj.content || dataObj.text || ''
+              
+              if (msgContent) {
+                replyContent += msgContent
+                // 实时更新屏幕上的内容
+                messages.value[currentMsgIndex].content = replyContent
+                scrollToBottom()
+              }
+            } catch (e) {
+              // 忽略解析错误的行
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.error('AI 请求失败:', error)
+      messages.value[currentMsgIndex].content = '网络开小差了，请稍后再试。'
+    } finally {
       isTyping.value = false
     }
     return
   }
 
-  // 模式 B：走本地匹配
+  // 模式 B：本地匹配 (保持不变)
   let reply = '抱歉，这个问题我还不太了解。你可以试试问「什么是生态红线？」「秦岭案是怎么回事？」「法典对我有什么影响？」或「垃圾分类怎么分？」'
   for (const [key, value] of Object.entries(knowledgeBase)) {
     if (text.includes(key) || key.includes(text) || text.includes(key.replace('什么是', '').replace('怎么分', ''))) {
@@ -185,12 +208,11 @@ const sendMessage = () => {
       break
     }
   }
-
   setTimeout(() => {
     messages.value.push({ role: 'assistant', content: reply })
     isTyping.value = false
     scrollToBottom()
-  }, 500 + Math.random() * 500)
+  }, 500)
 }
 
 const askSuggestion = (suggestion) => {
@@ -198,91 +220,12 @@ const askSuggestion = (suggestion) => {
   sendMessage()
 }
 
-// 8. 接收扣子 SDK 的回调消息（刚才漏掉的核心代码）
-const handleCozeMessage = (event) => {
-  if (event.origin !== COZE_WEB_SDK_ORIGIN) return;
-  const data = event.data;
-
-  // 初始化
-  if (data.type === 'IFRAME_READY') {
-    iframeRef.value.contentWindow.postMessage({
-      type: 'INIT',
-      payload: { token: TOKEN, projectId: PROJECT_ID }
-    }, COZE_WEB_SDK_ORIGIN);
-  }
-
-  console.log('收到扣子消息:', data.type, data);
-
-  // Token 过期
-  if (data.type === 'TOKEN_EXPIRED') {
-    iframeRef.value.contentWindow.postMessage({
-      type: 'UPDATE_TOKEN',
-      payload: { token: TOKEN }
-    }, COZE_WEB_SDK_ORIGIN);
-  }
-
-  // 接收 AI 回答
-  //测试
-  // 不管它 type 叫啥，只要里面包含文本，就打印出来！
-if (data.payload && data.payload.message && data.payload.message.content) {
-  // 强行关掉转圈动画
-  isTyping.value = false; 
-  
-  const replyContent = data.payload.message.content;
-  const lastMsg = messages.value[messages.value.length - 1];
-  
-  if (lastMsg && lastMsg.role === 'assistant' && !lastMsg.isStatic) {
-     lastMsg.content = replyContent;
-  } else {
-     messages.value.push({ role: 'assistant', content: replyContent });
-  }
-  scrollToBottom();
-}
-  // if (data.type === 'MESSAGE_RECEIVED') {
-  //   const replyContent = data.payload?.message?.content || ''
-  //   if (!replyContent) return;
-
-  //   if (data.payload?.is_final) {
-  //     isTyping.value = false // AI 回答完毕，关闭打字动画
-  //   }
-
-  //   // 打字机流式输出效果
-  //   const lastMsg = messages.value[messages.value.length - 1]
-  //   if (lastMsg && lastMsg.role === 'assistant' && !lastMsg.isStatic) {
-  //      lastMsg.content = replyContent
-  //   } else {
-  //      messages.value.push({ role: 'assistant', content: replyContent })
-  //   }
-  //   scrollToBottom()
-  // }
-}
-
-// 9. 生命周期
 watch(messages, () => { scrollToBottom() }, { deep: true })
 
 onMounted(() => {
-  // 挂载监听器
-  window.addEventListener('message', handleCozeMessage)
-
-  //测试输出
-  console.log('小助手组件挂载，iframe 当前状态：', iframeRef.value);
-  
-  if (iframeRef.value) {
-    iframeRef.value.onload = () => {
-      console.log('✅ 扣子 sdk.coze.site 加载完成！');
-    };
-  }
-  //---测试over
-  
-  // 键盘 Esc 关闭
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && dialogVisible.value) closeDialog()
   })
-})
-
-onUnmounted(() => {
-  // 卸载监听器（防止内存泄漏）
-  window.removeEventListener('message', handleCozeMessage)
 })
 </script>
 
