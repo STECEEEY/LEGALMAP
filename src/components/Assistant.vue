@@ -161,12 +161,11 @@ const sendMessage = async () => {
       const decoder = new TextDecoder()
       let replyContent = ''
 
-      while (true) {
+            while (true) {
         const { done, value } = await reader.read()
         if (done) break
 
         const chunk = decoder.decode(value, { stream: true })
-        // 扣子的流式数据以 "data: " 开头，按行分割
         const lines = chunk.split('\n').filter(line => line.trim() !== '')
 
         for (const line of lines) {
@@ -176,17 +175,30 @@ const sendMessage = async () => {
 
             try {
               const dataObj = JSON.parse(jsonStr)
-              // 提取文本（兼容不同的返回字段名）
-              const msgContent = dataObj.message?.content || dataObj.content || dataObj.text || ''
               
-              if (msgContent) {
+              // 🔴 核心修改：深入解析扣子返回的流式数据
+              let msgContent = '';
+              // 有些版本返回的是 event.content
+              if (typeof dataObj.content === 'string') {
+                msgContent = dataObj.content;
+              } 
+              // 有些返回的是 event.message.content
+              else if (dataObj.message && typeof dataObj.message.content === 'string') {
+                msgContent = dataObj.message.content;
+              }
+              // 有些是数组格式 [{type: 'text', text: '...'}]
+              else if (Array.isArray(dataObj.content)) {
+                 msgContent = dataObj.content.map(c => c.text || '').join('');
+              }
+
+              // 如果找到了文字，就拼接到屏幕上
+              if (msgContent && msgContent !== '[object Object]') {
                 replyContent += msgContent
-                // 实时更新屏幕上的内容
                 messages.value[currentMsgIndex].content = replyContent
                 scrollToBottom()
               }
             } catch (e) {
-              // 忽略解析错误的行
+              console.warn('解析单行数据失败:', e)
             }
           }
         }
