@@ -302,7 +302,7 @@ onMounted(() => {
   position: absolute;
   bottom: 95px;
   right: 0;
-  width: 500px;
+  width: 400px;
   max-width: 92vw;
   animation: slideUp 0.35s cubic-bezier(0.22, 1, 0.36, 1);
 }
@@ -328,6 +328,7 @@ onMounted(() => {
   position: absolute;
   top: 0;
   left: 0;
+  right:20;
   width: 100%;
   height: 100%;
   display: flex;
@@ -344,7 +345,7 @@ onMounted(() => {
   min-height: 60px;
 }
 .drag-hint {
-  font-size: 11px;
+  font-size: 14px;
   color: rgba(139, 115, 85, 0.35);
   font-family: '华文楷体', 'KaiTi', serif;
   letter-spacing: 1px;
@@ -353,7 +354,7 @@ onMounted(() => {
 .dialog-bottom {
   flex-shrink: 0;
   height: 600px;
-  width: 450px;
+  width: 380px;
   display: flex;
   flex-direction: column;
   padding: 0 4px;
@@ -397,7 +398,7 @@ onMounted(() => {
   padding: 2px 2px 2px;
   margin: 0;
   min-height: 90px;
-  max-height: 400px;
+  max-height: 375px;
 }
 .dialog-messages::-webkit-scrollbar { width: 3px; }
 .dialog-messages::-webkit-scrollbar-track { background: rgba(200, 180, 150, 0.1); border-radius: 4px; }
