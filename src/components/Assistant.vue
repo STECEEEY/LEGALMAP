@@ -92,7 +92,7 @@ const API_URL = 'https://winter-tooth-2466.2122855316.workers.dev' // 从截图�
 const messages = ref([
   {
     role: 'assistant',
-    content: '你好！我是法典小助手 🌱\n点击地图上的绿色区域，可以查看生态红线和环境风险信息。有什么关于生态环境法典的问题，尽管问我吧！'
+    content: '你好！我是AI法典小助手 🌱\n有什么关于生态环境法典的问题，尽管问我吧！'
   }
 ])
 
