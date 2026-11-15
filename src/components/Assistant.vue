@@ -161,44 +161,48 @@ const sendMessage = async () => {
       const decoder = new TextDecoder()
       let replyContent = ''
 
-            while (true) {
+            // 🔴 新增一个缓冲区变量，用来存半截数据
+      let buffer = '';
+
+      while (true) {
         const { done, value } = await reader.read()
         if (done) break
 
-        const chunk = decoder.decode(value, { stream: true })
-        const lines = chunk.split('\n').filter(line => line.trim() !== '')
+        // 解码并追加到缓冲区
+        buffer += decoder.decode(value, { stream: true })
+
+        // 按换行符切分
+        const lines = buffer.split('\n')
+        
+        // 最后一段可能是不完整的半截数据，留在缓冲区里下次用
+        buffer = lines.pop() || '' 
 
         for (const line of lines) {
-          if (line.startsWith('data:')) {
-            const jsonStr = line.replace('data:', '').trim()
-            if (jsonStr === '[DONE]') continue;
+          const trimmedLine = line.trim()
+          if (trimmedLine.startsWith('data:')) {
+            const jsonStr = trimmedLine.replace('data:', '').trim()
+            if (jsonStr === '[DONE]' || jsonStr === '') continue;
 
             try {
               const dataObj = JSON.parse(jsonStr)
               
-              // 🔴 核心修改：深入解析扣子返回的流式数据
+              // 提取文本内容
               let msgContent = '';
-              // 有些版本返回的是 event.content
               if (typeof dataObj.content === 'string') {
                 msgContent = dataObj.content;
-              } 
-              // 有些返回的是 event.message.content
-              else if (dataObj.message && typeof dataObj.message.content === 'string') {
+              } else if (dataObj.message && typeof dataObj.message.content === 'string') {
                 msgContent = dataObj.message.content;
-              }
-              // 有些是数组格式 [{type: 'text', text: '...'}]
-              else if (Array.isArray(dataObj.content)) {
+              } else if (Array.isArray(dataObj.content)) {
                  msgContent = dataObj.content.map(c => c.text || '').join('');
               }
 
-              // 如果找到了文字，就拼接到屏幕上
               if (msgContent && msgContent !== '[object Object]') {
                 replyContent += msgContent
                 messages.value[currentMsgIndex].content = replyContent
                 scrollToBottom()
               }
             } catch (e) {
-              console.warn('解析单行数据失败:', e)
+              console.warn('解析单行数据失败，跳过该行:', jsonStr)
             }
           }
         }
