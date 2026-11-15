@@ -1,6 +1,11 @@
 <!-- src/components/Assistant.vue -->
 <template>
     <div class="assistant-wrapper">
+        <iframe 
+      ref="iframeRef" 
+      src="https://sdk.coze.site" 
+      style="display: none;"
+    ></iframe>
       <!-- 圆形头像 -->
       <div class="assistant-avatar" @click="toggleDialog">
         <img src="/images/character.jpg" alt="小助手" />
@@ -73,56 +78,79 @@
     </div>
   </template>
   
-<script setup>
-import { ref, watch, nextTick, onMounted, onUnmounted } from 'vue'
+  <script setup>
+  import { ref, watch, nextTick, onMounted } from 'vue'
 
-const dialogVisible = ref(false)
-const inputText = ref('')
-const isTyping = ref(false)
-const messagesContainer = ref(null)
-const iframeRef = ref(null) // 用于绑定隐藏的 iframe
-
-// 你的扣子配置
-const TOKEN = 'cztei_hmM1f25wdgV9EASfXiAYP9cnKLOkVym8nUCoSW868mjUNusWkJm3KfucW8zqks6sb'
-const PROJECT_ID = '7707986728497365043'
-const COZE_WEB_SDK_ORIGIN = 'https://sdk.coze.site'
-
-// 消息数据
-const messages = ref([
-  {
-    role: 'assistant',
-    content: '你好！我是法典小助手 🌱\n点击地图上的绿色区域，可以查看生态红线和环境风险信息。有什么关于生态环境法典的问题，尽管问我吧！'
+// 在 import 下面添加
+const props = defineProps({
+  isAI: {
+    type: Boolean,
+    default: false // 默认是原来的本地固定台词模式
   }
-])
-
-const suggestions = ref([
-  '什么是生态红线？',
-  '秦岭案是怎么回事？',
-  '法典对我有什么影响？',
-  '垃圾分类怎么分？'
-])
-
-// 方法
-const toggleDialog = () => {
-  dialogVisible.value = !dialogVisible.value
-  if (dialogVisible.value) {
-    scrollToBottom()
-  }
-}
-
-const closeDialog = () => {
-  dialogVisible.value = false
-}
-
-const scrollToBottom = () => {
-  nextTick(() => {
-    if (messagesContainer.value) {
-      messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight
+})
+  const dialogVisible = ref(false)
+  const inputText = ref('')
+  const isTyping = ref(false)
+  const messagesContainer = ref(null)
+  
+  
+  
+  // ============================================================
+  // 消息数据
+  // ============================================================
+  
+  const messages = ref([
+    {
+      role: 'assistant',
+      content: '你好！我是法典小助手 🌱\n点击地图上的绿色区域，可以查看生态红线和环境风险信息。有什么关于生态环境法典的问题，尽管问我吧！'
     }
-  })
-}
-
-// 发送消息给扣子 SDK
+  ])
+  
+  const suggestions = ref([
+    '什么是生态红线？',
+    '秦岭案是怎么回事？',
+    '法典对我有什么影响？',
+    '垃圾分类怎么分？'
+  ])
+  
+  const knowledgeBase = {
+    '生态红线': {
+      answer: '生态红线是《生态环境法典》确立的重要制度，是指依法在重点生态功能区、生态环境敏感区和脆弱区等区域划定的严格管控边界。生态红线区内禁止开发建设活动，是保障国家生态安全的底线和生命线。\n\n📖 依据：法典第287条、第290条'
+    },
+    '秦岭案': {
+      answer: '2026年7月，西安铁路运输中级法院审理了陕西省首例个人非法组织穿越秦岭核心保护区民事公益诉讼案。\n\n📌 案情：某户外组织在2024年1月至2025年6月期间，25次组织148人次进入秦岭核心保护区，收费30,894元。\n\n⚖️ 判决：判令停止组织穿越、赔偿生态修复费用1万元、公开赔礼道歉。\n\n💡 意义：标志着法律对生态破坏行为的追责从行政监管延伸到了民事公益诉讼领域。'
+    },
+    '对我有什么影响': {
+      answer: '生态环境法典与每个人的日常生活息息相关：\n\n🗑️ 垃圾分类：单位和个人负有分类投放义务（法典第499条、第506条）\n\n🌳 自然保护：禁止非法进入自然保护区核心区（法典第287条、第1152条）\n\n💧 水环境保护：禁止向水体排放污染物（法典第221条、第1176条）\n\n⚖️ 法律责任：破坏生态环境将承担民事赔偿甚至刑事责任'
+    },
+    '垃圾分类': {
+      answer: '《生态环境法典》第499条规定，国家推行生活垃圾分类制度。\n\n📌 第506条明确：单位和个人负有生活垃圾分类投放义务，禁止随意倾倒、抛撒、堆放或者焚烧生活垃圾。\n\n💰 处罚标准（法典第1169条第3款）：个人随意倾倒生活垃圾，拒不改正的，处一百元以上一千元以下罚款。'
+    }
+  }
+  
+  // ============================================================
+  // 方法
+  // ============================================================
+  
+  const toggleDialog = () => {
+    dialogVisible.value = !dialogVisible.value
+    if (dialogVisible.value) {
+      scrollToBottom()
+    }
+  }
+  
+  const closeDialog = () => {
+    dialogVisible.value = false
+  }
+  
+  const scrollToBottom = () => {
+    nextTick(() => {
+      if (messagesContainer.value) {
+        messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight
+      }
+    })
+  }
+  
 const sendMessage = () => {
   const text = inputText.value.trim()
   if (!text || isTyping.value) return
@@ -133,84 +161,60 @@ const sendMessage = () => {
   scrollToBottom()
   isTyping.value = true
 
-  // 2. 发送给 iframe 里的扣子 SDK
-  if (iframeRef.value && iframeRef.value.contentWindow) {
-    iframeRef.value.contentWindow.postMessage({
-      type: 'SEND_MESSAGE',
-      payload: {
-        content: text
-      }
-    }, COZE_WEB_SDK_ORIGIN)
-  }
-}
-
-const askSuggestion = (suggestion) => {
-  inputText.value = suggestion
-  sendMessage()
-}
-
-// 监听 iframe 发回来的 AI 回复
-const handleMessage = (event) => {
-  if (event.origin !== COZE_WEB_SDK_ORIGIN) return;
-  const data = event.data;
-
-  // 1. 初始化 SDK
-  if (data.type === 'IFRAME_READY') {
-    iframeRef.value.contentWindow.postMessage({
-      type: 'INIT',
-      payload: {
-        token: TOKEN,
-        projectId: PROJECT_ID,
-      }
-    }, COZE_WEB_SDK_ORIGIN);
-  }
-
-  // 2. 处理 Token 过期
-  if (data.type === 'TOKEN_EXPIRED') {
-    iframeRef.value.contentWindow.postMessage({
-      type: 'UPDATE_TOKEN',
-      payload: { token: TOKEN },
-    }, COZE_WEB_SDK_ORIGIN);
-  }
-
-  // 3. 接收扣子返回的消息流
-  if (data.type === 'MESSAGE_RECEIVED') {
-    const replyContent = data.payload?.message?.content || ''
-
-    // 判断当前是否是打字状态
-    if (data.payload?.is_final) {
+  // ==========================================
+  // 模式 A：如果是科普页，走扣子 AI
+  // ==========================================
+  if (props.isAI) {
+    // 检查 iframe 是否准备好
+    if (iframeRef.value && iframeRef.value.contentWindow) {
+      iframeRef.value.contentWindow.postMessage({
+        type: 'SEND_MESSAGE',
+        payload: { content: text }
+      }, COZE_WEB_SDK_ORIGIN)
+    } else {
+      // 如果没准备好，给个提示
+      messages.value.push({ role: 'assistant', content: '网络连接中，请稍后再试...' })
       isTyping.value = false
     }
-
-    // 看看最后一条消息是不是 AI 的，是的话就追加内容（实现打字机效果）
-    const lastMsg = messages.value[messages.value.length - 1]
-    if (lastMsg && lastMsg.role === 'assistant' && !lastMsg.isStatic) {
-       lastMsg.content = replyContent
-    } else {
-       messages.value.push({ role: 'assistant', content: replyContent })
-    }
-    scrollToBottom()
+    return // 结束当前方法，不执行下面的本地匹配
   }
-}
 
-watch(messages, () => {
-  scrollToBottom()
-}, { deep: true })
+  // ==========================================
+  // 模式 B：如果是欢迎页/地图页，走本地匹配 (你原来的代码)
+  // ==========================================
+  let reply = '抱歉，这个问题我还不太了解。你可以试试问「什么是生态红线？」「秦岭案是怎么回事？」「法典对我有什么影响？」或「垃圾分类怎么分？」'
 
-onMounted(() => {
-  window.addEventListener('message', handleMessage)
-  
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && dialogVisible.value) {
-      closeDialog()
+  for (const [key, value] of Object.entries(knowledgeBase)) {
+    if (text.includes(key) || key.includes(text) || text.includes(key.replace('什么是', '').replace('怎么分', ''))) {
+      reply = value.answer
+      break
     }
-  })
-})
+  }
 
-onUnmounted(() => {
-  window.removeEventListener('message', handleMessage)
-})
-</script>
+  setTimeout(() => {
+    messages.value.push({ role: 'assistant', content: reply })
+    isTyping.value = false
+    scrollToBottom()
+  }, 500 + Math.random() * 500)
+}
+  
+  const askSuggestion = (suggestion) => {
+    inputText.value = suggestion
+    sendMessage()
+  }
+  
+  watch(messages, () => {
+    scrollToBottom()
+  }, { deep: true })
+  
+  onMounted(() => {
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && dialogVisible.value) {
+        closeDialog()
+      }
+    })
+  })
+  </script>
   
   <style scoped>
   /* ============================================================
