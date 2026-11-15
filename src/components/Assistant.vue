@@ -161,53 +161,56 @@ const sendMessage = async () => {
       const decoder = new TextDecoder()
       let replyContent = ''
 
-            // 🔴 新增一个缓冲区变量，用来存半截数据
-      let buffer = '';
+              // 🔴 新增一个缓冲区变量，用来存半截数据
+        let buffer = '';
 
-      while (true) {
-        const { done, value } = await reader.read()
-        if (done) break
+        while (true) {
+          const { done, value } = await reader.read()
+          if (done) break
 
-        // 解码并追加到缓冲区
-        buffer += decoder.decode(value, { stream: true })
-        console.log("📦 收到原始数据块:", decoder.decode(value, { stream: true }))
+          // 解码并追加到缓冲区
+          buffer += decoder.decode(value, { stream: true })
 
-        // 按换行符切分
-        const lines = buffer.split('\n')
-        
-        // 最后一段可能是不完整的半截数据，留在缓冲区里下次用
-        buffer = lines.pop() || '' 
+          // 按换行符切分
+          const lines = buffer.split('\n')
+          
+          // 最后一段可能是不完整的半截数据，留在缓冲区里下次用
+          buffer = lines.pop() || '' 
 
-        for (const line of lines) {
-          const trimmedLine = line.trim()
-          if (trimmedLine.startsWith('data:')) {
+          for (const line of lines) {
+            const trimmedLine = line.trim()
+            // 注意：这里不仅要过滤以 data: 开头的，还要过滤掉空行和 event: 开头的
+            if (!trimmedLine.startsWith('data:')) continue;
+
             const jsonStr = trimmedLine.replace('data:', '').trim()
             if (jsonStr === '[DONE]' || jsonStr === '') continue;
 
             try {
               const dataObj = JSON.parse(jsonStr)
               
-              // 提取文本内容
+              // 🔴 核心修改：根据真实抓包结果提取文字
               let msgContent = '';
-              if (typeof dataObj.content === 'string') {
-                msgContent = dataObj.content;
-              } else if (dataObj.message && typeof dataObj.message.content === 'string') {
-                msgContent = dataObj.message.content;
-              } else if (Array.isArray(dataObj.content)) {
-                 msgContent = dataObj.content.map(c => c.text || '').join('');
+              if (dataObj.content && dataObj.content.answer) {
+                msgContent = dataObj.content.answer;
               }
 
-              if (msgContent && msgContent !== '[object Object]') {
+              // 如果提取到了文字，就拼接到屏幕上
+              if (msgContent) {
                 replyContent += msgContent
                 messages.value[currentMsgIndex].content = replyContent
                 scrollToBottom()
               }
+
+              // 判断是否结束（当 finish 为 true 且 type 为 message_end 时）
+              if (dataObj.type === 'message_end') {
+                 isTyping.value = false;
+              }
+
             } catch (e) {
-              console.warn('解析单行数据失败，跳过该行:', jsonStr)
+              // 忽略半截数据导致的解析错误，因为下次循环会拼全
             }
           }
         }
-      }
     } catch (error) {
       console.error('AI 请求失败:', error)
       messages.value[currentMsgIndex].content = '网络开小差了，请稍后再试。'
