@@ -1,6 +1,7 @@
 <!-- src/views/EcologyCodePage.vue -->
 <template>
   <div class="ecology-page">
+    <Assistant :isAI="true" />
     <!-- 背景 -->
     <div class="bg-image"></div>
     <div class="bg-overlay"></div>
