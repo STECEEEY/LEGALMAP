@@ -170,6 +170,7 @@ const sendMessage = async () => {
 
         // 解码并追加到缓冲区
         buffer += decoder.decode(value, { stream: true })
+        console.log("📦 收到原始数据块:", decoder.decode(value, { stream: true }))
 
         // 按换行符切分
         const lines = buffer.split('\n')
