@@ -7,11 +7,11 @@
       <div class="assistant-status" :class="{ 'status-active': dialogVisible }"></div>
     </div>
 
-    <!-- 对话框 -->
-    <div class="assistant-dialog" v-show="dialogVisible" @click.stop>
+    <!-- 对话框 (增加动态 class) -->
+    <div class="assistant-dialog" v-show="dialogVisible" @click.stop :class="dialogSizeClass">
       <div class="dialog-bubble">
-        <!-- 背景图 -->
-        <img src="/images/对话框.png" class="dialog-bg" alt="对话框" />
+        <!-- 背景图 (动态切换) -->
+        <img :src="bgImage" class="dialog-bg" alt="对话框" />
 
         <!-- 内容区域 - 固定在下半部分 -->
         <div class="dialog-content">
@@ -74,7 +74,7 @@
 </template>
 
 <script setup>
-import { ref, watch, nextTick, onMounted, onUnmounted } from 'vue'
+import { ref, watch, nextTick, onMounted, computed } from 'vue'
 
 const props = defineProps({
   isAI: { type: Boolean, default: false }
@@ -85,9 +85,28 @@ const inputText = ref('')
 const isTyping = ref(false)
 const messagesContainer = ref(null)
 
-// 🔴 刚才截图里的核心信息
+// ================= 动态计算对话框大小 =================
+const totalTextLength = computed(() => {
+  return messages.value.reduce((acc, msg) => acc + msg.content.length, 0)
+})
+
+// 根据字数阈值切换大小 (你可以根据需要调整 150 和 400 这两个数值)
+const dialogSizeClass = computed(() => {
+  if (totalTextLength.value < 150) return 'size-small'
+  if (totalTextLength.value < 400) return 'size-medium'
+  return 'size-large'
+})
+
+const bgImage = computed(() => {
+  if (totalTextLength.value < 150) return '/images/对话框.png' // 小
+  if (totalTextLength.value < 400) return '/images/中对话框..png' // 中 (注意你的文件名有两个点)
+  return '/images/大对话框..png' // 大 (注意你的文件名有两个点)
+})
+// =======================================================
+
+// 🔴 扣子 API 配置
 const API_TOKEN = 'eyJhbGciOiJSUzI1NiIsImtpZCI6IjAyNmY4ZGViLTcxY2UtNDQwMS1iMzAyLTAxYmIyYWY1Y2VkNSJ9.eyJpc3MiOiJodHRwczovL2FwaS5jb3plLmNuIiwiYXVkIjpbIm54YldyY085bHFnckRvQWpwY3ZPajR0c0ZoZVFPcWFiIl0sImV4cCI6ODIxMDI2Njg3Njc5OSwiaWF0IjoxNzk0NzI4Nzk1LCJzdWIiOiJzcGlmZmU6Ly9hcGkuY296ZS5jbi93b3JrbG9hZF9pZGVudGl0eS9pZDo3NzA4MTA1NTczMzg3OTkzMTI2Iiwic3JjIjoiaW5ib3VuZF9hdXRoX2FjY2Vzc190b2tlbl9pZDo3NzA4MzAxNDgyNzUxMTY0NDQyIn0.G0e_2gObj6pXLq3nZyFbAiZQI5myTfPZjrKQD70PWjC4O6DirHwifCM6wuSgXv2hWb3cSWn7BZjjvM1gUJ47YONSiKA78b_dFzVLpIzDe42aYQ4xO74Pr0cR9Lv9-98iTz442AnhTzYcXF3K9I5RrttoD3fMzsfyINnYIlZgT9QNhjyIwm0Je7rNVTvxzOegiNwT_8sw93_e2TXCe6_teqnx5zPp8o2XCxl2oLMj-YsQv-NvQ-_Y0WCMAm79Aq07T3ofcWCvt4LZvnWL8-MUvIVqlSc_4-BPSLqcTSECF1ap5rsZtPDm9CRBmUtIqxSXWMQfA2B0p6xEMD5-x9nNQg' 
-const API_URL = 'https://winter-tooth-2466.2122855316.workers.dev' // 从截图中获取的地址
+const API_URL = 'https://winter-tooth-2466.2122855316.workers.dev' 
 
 const messages = ref([
   {
@@ -98,8 +117,12 @@ const messages = ref([
 
 const suggestions = ref(['什么是生态红线？', '秦岭案是怎么回事？', '法典对我有什么影响？', '垃圾分类怎么分？'])
 
-// 本地知识库 (保持不变)
-const knowledgeBase = { /* ... 把你原来的直接复制过来 ... */ }
+// 🔴 本地知识库 (请把你之前的完整内容粘贴覆盖这里)
+const knowledgeBase = {
+  /* 把你原来的 knowledgeBase 对象完整粘贴到这里 */
+  '生态红线': { answer: '...' },
+  '秦岭案': { answer: '...' }
+}
 
 const toggleDialog = () => {
   dialogVisible.value = !dialogVisible.value
@@ -116,7 +139,6 @@ const scrollToBottom = () => {
   })
 }
 
-// 🔴 核心修改：用 fetch 发送流式请求
 const sendMessage = async () => {
   const text = inputText.value.trim()
   if (!text || isTyping.value) return
@@ -128,7 +150,6 @@ const sendMessage = async () => {
 
   // 模式 A：调用 API
   if (props.isAI) {
-    // 预先插入一个空的 assistant 消息，用来接收打字机效果
     messages.value.push({ role: 'assistant', content: '' })
     const currentMsgIndex = messages.value.length - 1
 
@@ -141,70 +162,53 @@ const sendMessage = async () => {
           'Accept': 'text/event-stream'
         },
         body: JSON.stringify({
-          content: {
-            query: {
-              prompt: [{ type: 'text', content: { text: text } }]
-            }
-          },
+          content: { query: { prompt: [{ type: 'text', content: { text: text } }] } },
           type: 'query',
           session_id: 'session_' + Date.now(), 
           project_id: '7707986728497365043'
         })
       })
 
-      if (!res.ok) {
-        throw new Error('请求失败')
-      }
+      if (!res.ok) throw new Error('请求失败')
 
-      // 解析流式数据
       const reader = res.body.getReader()
       const decoder = new TextDecoder()
       let replyContent = ''
-
-      // 🔴 终极修复版：处理断包和解析
-      let buffer = ''; // 用来暂存没传完的半截数据
+      let buffer = ''; 
 
       while (true) {
         const { done, value } = await reader.read()
         if (done) break
 
-        // 1. 解码并拼接到缓冲区（stream: true 保证多字节汉字不会被切坏）
         buffer += decoder.decode(value, { stream: true })
-
-        // 2. 按换行符切分，最后一部分可能是不完整的，必须留在 buffer 里
         const lines = buffer.split('\n')
         buffer = lines.pop() || '' 
 
-        // 3. 遍历已经完整的每一行
         for (const line of lines) {
           const trimmedLine = line.trim()
-          if (!trimmedLine.startsWith('data:')) continue; // 过滤掉 event: message 等无用行
-
+          if (!trimmedLine.startsWith('data:')) continue;
+          
           const jsonStr = trimmedLine.replace('data:', '').trim()
           if (jsonStr === '[DONE]' || jsonStr === '') continue;
 
           try {
             const dataObj = JSON.parse(jsonStr)
-            
-            // 4. 提取 answer 字段的文字
             let msgContent = '';
             if (dataObj.content && dataObj.content.answer) {
               msgContent = dataObj.content.answer;
             }
 
-            // 5. 渲染到屏幕上
             if (msgContent) {
               replyContent += msgContent
               messages.value[currentMsgIndex].content = replyContent
               scrollToBottom()
             }
 
-            // 6. 判断流是否结束
             if (dataObj.type === 'message_end' || dataObj.finish === true) {
               isTyping.value = false;
             }
           } catch (e) {
-            // 如果解析报错，说明这行依然不完整，直接忽略，等下一轮拼全
+            // 忽略不完整的数据包
           }
         }
       }
@@ -217,7 +221,7 @@ const sendMessage = async () => {
     return
   }
 
-  // 模式 B：本地匹配 (保持不变)
+  // 模式 B：本地匹配 (欢迎页/地图页)
   let reply = '抱歉，这个问题我还不太了解。你可以试试问「什么是生态红线？」「秦岭案是怎么回事？」「法典对我有什么影响？」或「垃圾分类怎么分？」'
   for (const [key, value] of Object.entries(knowledgeBase)) {
     if (text.includes(key) || key.includes(text) || text.includes(key.replace('什么是', '').replace('怎么分', ''))) {
@@ -225,6 +229,7 @@ const sendMessage = async () => {
       break
     }
   }
+  
   setTimeout(() => {
     messages.value.push({ role: 'assistant', content: reply })
     isTyping.value = false
@@ -247,7 +252,9 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* 你的原有样式完全保留，不需要任何修改 */
+/* ============================================================
+   ===== 基础样式 =====
+   ============================================================ */
 .assistant-wrapper {
   position: fixed;
   bottom: 30px;
@@ -258,6 +265,8 @@ onMounted(() => {
   align-items: flex-end;
   gap: 12px;
 }
+
+/* 头像 */
 .assistant-avatar {
   width: 80px;
   height: 80px;
@@ -298,11 +307,12 @@ onMounted(() => {
   0%, 100% { box-shadow: 0 0 0 0 rgba(255, 152, 0, 0.4); }
   50% { box-shadow: 0 0 0 8px rgba(255, 152, 0, 0); }
 }
+
+/* 对话框容器 */
 .assistant-dialog {
   position: absolute;
   bottom: 95px;
   right: 0;
-  width: 400px;
   max-width: 92vw;
   animation: slideUp 0.35s cubic-bezier(0.22, 1, 0.36, 1);
 }
@@ -347,13 +357,14 @@ onMounted(() => {
   letter-spacing: 1px;
   user-select: none;
 }
+
+/* 默认下部内容区 */
 .dialog-bottom {
   flex-shrink: 0;
-  height: 200px;
-  width: 350px;
   display: flex;
   flex-direction: column;
   padding: 0 4px;
+  transition: all 0.3s ease;
 }
 .dialog-header {
   display: flex;
@@ -364,11 +375,11 @@ onMounted(() => {
   flex-shrink: 0;
 }
 .dialog-name {
-  font-size: 13px;
   font-weight: 700;
   color: #3a2a1a;
   font-family: '华文楷体', 'KaiTi', serif;
   letter-spacing: 1px;
+  transition: font-size 0.3s;
 }
 .dialog-close {
   background: rgba(139, 115, 85, 0.2);
@@ -393,8 +404,7 @@ onMounted(() => {
   overflow-y: auto;
   padding: 2px 2px 2px;
   margin: 0;
-  min-height: 90px;
-  max-height: 130px;
+  transition: max-height 0.3s ease;
 }
 .dialog-messages::-webkit-scrollbar { width: 3px; }
 .dialog-messages::-webkit-scrollbar-track { background: rgba(200, 180, 150, 0.1); border-radius: 4px; }
@@ -404,7 +414,6 @@ onMounted(() => {
   align-items: flex-start;
   gap: 5px;
   margin-bottom: 3px;
-  font-size: 12px;
   line-height: 1.5;
   color: #3a2a1a;
   animation: msgIn 0.3s ease-out;
@@ -416,12 +425,12 @@ onMounted(() => {
 .dialog-message .msg-avatar { font-size: 13px; flex-shrink: 0; margin-top: 1px; }
 .dialog-message .msg-text {
   background: rgba(255, 248, 235, 0.4);
-  padding: 3px 10px;
   border-radius: 6px;
   white-space: pre-line;
   word-break: break-word;
   max-width: 90%;
   border: 1px solid rgba(200, 180, 150, 0.06);
+  transition: font-size 0.3s, padding 0.3s;
 }
 .dialog-message.message-user { flex-direction: row-reverse; }
 .dialog-message.message-user .msg-text {
@@ -436,6 +445,8 @@ onMounted(() => {
   0%, 80%, 100% { transform: translateY(0); }
   40% { transform: translateY(-6px); }
 }
+
+/* 输入区 */
 .dialog-input-area {
   display: flex;
   gap: 5px;
@@ -445,10 +456,8 @@ onMounted(() => {
 }
 .dialog-input-area input {
   flex: 1;
-  padding: 3px 10px;
   border: 1px solid rgba(200, 180, 150, 0.2);
   border-radius: 14px;
-  font-size: 11px;
   background: rgba(255, 248, 235, 0.4);
   color: #3a2a1a;
   outline: none;
@@ -456,15 +465,13 @@ onMounted(() => {
   transition: all 0.2s;
 }
 .dialog-input-area input:focus { border-color: rgba(139, 115, 85, 0.4); background: rgba(255, 248, 235, 0.6); }
-.dialog-input-area input::placeholder { color: #8a7a6a; font-size: 10px; }
+.dialog-input-area input::placeholder { color: #8a7a6a; }
 .dialog-input-area input:disabled { opacity: 0.5; }
 .dialog-input-area button {
-  padding: 3px 12px;
   border: none;
   background: #8a7a5a;
   color: white;
   border-radius: 14px;
-  font-size: 11px;
   cursor: pointer;
   transition: all 0.2s;
   font-family: '华文楷体', 'KaiTi', serif;
@@ -473,14 +480,14 @@ onMounted(() => {
 }
 .dialog-input-area button:hover:not(:disabled) { background: #6a5a4a; transform: scale(1.02); }
 .dialog-input-area button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* 快捷按钮 */
 .dialog-suggestions { display: flex; flex-wrap: wrap; gap: 3px; padding-top: 3px; flex-shrink: 0; }
 .suggestion-btn {
-  padding: 1px 8px;
   border: 1px solid rgba(200, 180, 150, 0.2);
   border-radius: 10px;
   background: rgba(255, 248, 235, 0.3);
   color: #6a5a4a;
-  font-size: 9px;
   cursor: pointer;
   transition: all 0.2s;
   font-family: inherit;
@@ -488,32 +495,64 @@ onMounted(() => {
 }
 .suggestion-btn:hover { background: rgba(200, 180, 150, 0.15); border-color: rgba(200, 180, 150, 0.3); transform: translateY(-1px); }
 
-/* 响应式保留你原来的 */
+/* ============================================================
+   ===== 动态大小与科普页大字体适配 =====
+   ============================================================ */
+
+/* --- 小对话框 (默认) --- */
+.size-small .dialog-bottom { width: 350px; height: 200px; }
+.size-small .dialog-messages { min-height: 90px; max-height: 130px; font-size: 12px; }
+.size-small .dialog-name { font-size: 13px; }
+.size-small .dialog-message .msg-text { font-size: 12px; padding: 3px 10px; }
+.size-small .dialog-input-area input { font-size: 11px; padding: 3px 10px; }
+.size-small .dialog-input-area button { font-size: 11px; padding: 3px 12px; }
+.size-small .suggestion-btn { font-size: 9px; padding: 1px 8px; }
+
+/* --- 中对话框 --- */
+.size-medium .assistant-dialog { bottom: 100px; }
+.size-medium .dialog-bottom { width: 400px; height: 280px; }
+.size-medium .dialog-messages { max-height: 200px; }
+.size-medium .dialog-name { font-size: 15px; }
+.size-medium .dialog-message .msg-text { font-size: 14px; padding: 6px 12px; }
+.size-medium .dialog-input-area input { font-size: 13px; padding: 6px 12px; }
+.size-medium .dialog-input-area button { font-size: 13px; padding: 6px 16px; }
+.size-medium .suggestion-btn { font-size: 11px; padding: 3px 10px; }
+
+/* --- 大对话框 --- */
+.size-large .assistant-dialog { bottom: 110px; }
+.size-large .dialog-bottom { width: 450px; height: 350px; }
+.size-large .dialog-messages { max-height: 260px; }
+.size-large .dialog-name { font-size: 16px; }
+.size-large .dialog-message .msg-text { font-size: 15px; padding: 8px 14px; line-height: 1.6; }
+.size-large .dialog-input-area input { font-size: 14px; padding: 8px 14px; }
+.size-large .dialog-input-area button { font-size: 14px; padding: 8px 18px; }
+.size-large .suggestion-btn { font-size: 12px; padding: 4px 12px; }
+
+/* ============================================================
+   ===== 响应式适配 (移动端保留原有比例，缩小尺寸) =====
+   ============================================================ */
 @media (max-width: 768px) {
   .assistant-wrapper { bottom: 20px; right: 75px; }
   .assistant-avatar { width: 64px; height: 64px; }
   .assistant-status { width: 15px; height: 15px; }
-  .assistant-dialog { bottom: 75px; width: 85vw; right: -10px; }
-  .dialog-bottom { height: 220px; }
-  .dialog-messages { min-height: 70px; max-height: 100px; }
-  .dialog-message { font-size: 11px; }
-  .dialog-name { font-size: 12px; }
-  .dialog-top-placeholder { min-height: 40px; padding-top: 6px; }
-  .drag-hint { font-size: 9px; }
+  
+  .size-small .assistant-dialog { bottom: 75px; width: 85vw; right: -10px; }
+  .size-small .dialog-bottom { height: 220px; width: 100%; }
+  .size-medium .assistant-dialog { width: 85vw; right: -10px; }
+  .size-medium .dialog-bottom { height: 260px; width: 100%; }
+  .size-large .assistant-dialog { width: 85vw; right: -10px; }
+  .size-large .dialog-bottom { height: 300px; width: 100%; }
 }
 @media (max-width: 480px) {
   .assistant-wrapper { bottom: 16px; right: 60px; }
   .assistant-avatar { width: 54px; height: 54px; }
   .assistant-status { width: 13px; height: 13px; }
-  .assistant-dialog { bottom: 65px; width: 90vw; right: -6px; }
-  .dialog-bottom { height: 190px; }
-  .dialog-messages { min-height: 55px; max-height: 80px; padding: 1px; }
-  .dialog-message { font-size: 10px; gap: 3px; }
-  .dialog-message .msg-text { padding: 2px 6px; }
-  .dialog-top-placeholder { min-height: 30px; padding-top: 4px; }
-  .drag-hint { font-size: 8px; }
-  .dialog-input-area input { font-size: 10px; padding: 2px 8px; }
-  .dialog-input-area button { font-size: 10px; padding: 2px 8px; }
-  .suggestion-btn { font-size: 8px; padding: 1px 6px; }
+  
+  .size-small .assistant-dialog { bottom: 65px; width: 90vw; right: -6px; }
+  .size-small .dialog-bottom { height: 190px; }
+  .size-medium .assistant-dialog { width: 90vw; right: -6px; }
+  .size-medium .dialog-bottom { height: 230px; }
+  .size-large .assistant-dialog { width: 90vw; right: -6px; }
+  .size-large .dialog-bottom { height: 270px; }
 }
 </style>
