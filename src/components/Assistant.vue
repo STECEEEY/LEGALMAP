@@ -23,7 +23,7 @@
           <!-- 下半部分：实际内容 -->
           <div class="dialog-bottom">
             <div class="dialog-header">
-              <span class="dialog-name">🌿 法典小助手</span>
+              <span class="dialog-name">🌿 AI法典小助手</span>
               <button class="dialog-close" @click="closeDialog">✕</button>
             </div>
             <div class="dialog-messages" ref="messagesContainer">
