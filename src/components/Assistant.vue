@@ -99,7 +99,7 @@ const messagesContainer = ref(null)
 const iframeRef = ref(null)
 
 // 3. 扣子配置变量（刚才报错就是缺了这三个）
-const TOKEN = 'cztei_hwnpBSfWZLrUrJAqlumE7nDleARaZ0yFSAsS1JwQYWW9za484Fy1bEJGPCr0KAexE'
+const TOKEN = 'cztei_qBd3dFMX3Btex11SstcQJWkTlOJ2UQd58FNlu0NNnxcEtLGPYeimOtf5v2GL6bObj'
 const PROJECT_ID = '7707986728497365043'
 const COZE_WEB_SDK_ORIGIN = 'https://sdk.coze.site'
 
