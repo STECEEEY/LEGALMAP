@@ -302,7 +302,7 @@ onMounted(() => {
   position: absolute;
   bottom: 95px;
   right: 0;
-  width: 400px;
+  width: 600px;
   max-width: 92vw;
   animation: slideUp 0.35s cubic-bezier(0.22, 1, 0.36, 1);
 }
