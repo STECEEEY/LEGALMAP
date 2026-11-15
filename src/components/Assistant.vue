@@ -302,7 +302,7 @@ onMounted(() => {
   position: absolute;
   bottom: 95px;
   right: 0;
-  width: 600px;
+  width: 500px;
   max-width: 92vw;
   animation: slideUp 0.35s cubic-bezier(0.22, 1, 0.36, 1);
 }
@@ -353,7 +353,7 @@ onMounted(() => {
 .dialog-bottom {
   flex-shrink: 0;
   height: 600px;
-  width: 350px;
+  width: 450px;
   display: flex;
   flex-direction: column;
   padding: 0 4px;
@@ -397,7 +397,7 @@ onMounted(() => {
   padding: 2px 2px 2px;
   margin: 0;
   min-height: 90px;
-  max-height: 130px;
+  max-height: 400px;
 }
 .dialog-messages::-webkit-scrollbar { width: 3px; }
 .dialog-messages::-webkit-scrollbar-track { background: rgba(200, 180, 150, 0.1); border-radius: 4px; }
