@@ -398,7 +398,7 @@ onMounted(() => {
   padding: 2px 2px 2px;
   margin: 0;
   min-height: 90px;
-  max-height: 400px;
+  max-height: 385px;
 }
 .dialog-messages::-webkit-scrollbar { width: 3px; }
 .dialog-messages::-webkit-scrollbar-track { background: rgba(200, 180, 150, 0.1); border-radius: 4px; }
