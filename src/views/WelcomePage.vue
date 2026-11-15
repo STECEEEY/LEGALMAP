@@ -151,7 +151,7 @@
       </div>
     </div>
     <div class="competition-badge">
-  第三届星湖杯 · 科普地图设计赛道参赛作品
+  copyright@Yixiao Li&Manli Zhu
 </div>
   </div>
 </template>
