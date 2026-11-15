@@ -1,7 +1,7 @@
 <!-- src/components/Assistant.vue -->
 <template>
   <div class="assistant-wrapper">
-    <!-- 圆形头像 --
+    <!-- 圆形头像 -->
     <div class="assistant-avatar" @click="toggleDialog">
       <img src="/images/character.jpg" alt="小助手" />
       <div class="assistant-status" :class="{ 'status-active': dialogVisible }"></div>
