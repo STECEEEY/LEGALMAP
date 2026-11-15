@@ -112,7 +112,7 @@ const bgImage = computed(() => {
 // =======================================================
 
 const API_TOKEN = 'eyJhbGciOiJSUzI1NiIsImtpZCI6IjAyNmY4ZGViLTcxY2UtNDQwMS1iMzAyLTAxYmIyYWY1Y2VkNSJ9.eyJpc3MiOiJodHRwczovL2FwaS5jb3plLmNuIiwiYXVkIjpbIm54YldyY085bHFnckRvQWpwY3ZPajR0c0ZoZVFPcWFiIl0sImV4cCI6ODIxMDI2Njg3Njc5OSwiaWF0IjoxNzk0NzI4Nzk1LCJzdWIiOiJzcGlmZmU6Ly9hcGkuY296ZS5jbi93b3JrbG9hZF9pZGVudGl0eS9pZDo3NzA4MTA1NTczMzg3OTkzMTI2Iiwic3JjIjoiaW5ib3VuZF9hdXRoX2FjY2Vzc190b2tlbl9pZDo3NzA4MzAxNDgyNzUxMTY0NDQyIn0.G0e_2gObj6pXLq3nZyFbAiZQI5myTfPZjrKQD70PWjC4O6DirHwifCM6wuSgXv2hWb3cSWn7BZjjvM1gUJ47YONSiKA78b_dFzVLpIzDe42aYQ4xO74Pr0cR9Lv9-98iTz442AnhTzYcXF3K9I5RrttoD3fMzsfyINnYIlZgT9QNhjyIwm0Je7rNVTvxzOegiNwT_8sw93_e2TXCe6_teqnx5zPp8o2XCxl2oLMj-YsQv-NvQ-_Y0WCMAm79Aq07T3ofcWCvt4LZvnWL8-MUvIVqlSc_4-BPSLqcTSECF1ap5rsZtPDm9CRBmUtIqxSXWMQfA2B0p6xEMD5-x9nNQg' 
-const API_URL = 'https://winter-tooth-2466.2122855316.workers.dev' 
+const API_URL = 'https://api.ecodexatlas.top' 
 
 const messages = ref([
   {
@@ -124,11 +124,7 @@ const messages = ref([
 const suggestions = ref(['什么是生态红线？', '秦岭案是怎么回事？', '法典对我有什么影响？', '垃圾分类怎么分？'])
 
 // 🔴 本地知识库 (请把你之前的完整内容粘贴覆盖这里)
-const knowledgeBase = {
-  /* 把你原来的 knowledgeBase 对象完整粘贴到这里 */
-  '生态红线': { answer: '...' },
-  '秦岭案': { answer: '...' }
-}
+const knowledgeBase = {}
 
 const toggleDialog = () => {
   dialogVisible.value = !dialogVisible.value
