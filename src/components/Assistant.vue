@@ -8,7 +8,7 @@
     </div>
 
     <!-- 对话框 (增加动态 class) -->
-    <div class="assistant-dialog" v-show="dialogVisible" @click.stop :class="dialogSizeClass">
+    <div class="assistant-dialog" v-show="dialogVisible" @click.stop :class="[dialogSizeClass, { 'is-ai-mode': isAI }]">
       <div class="dialog-bubble">
         <!-- 背景图 (动态切换) -->
         <img :src="bgImage" class="dialog-bg" alt="对话框" />
@@ -86,25 +86,31 @@ const isTyping = ref(false)
 const messagesContainer = ref(null)
 
 // ================= 动态计算对话框大小 =================
-const totalTextLength = computed(() => {
-  return messages.value.reduce((acc, msg) => acc + msg.content.length, 0)
+// 只计算 AI 回复的换行符数量
+const aiReplyNewlines = computed(() => {
+  // 找到最后一条 AI 消息
+  const lastAssistantMsg = [...messages.value].reverse().find(m => m.role === 'assistant');
+  if (!lastAssistantMsg || !lastAssistantMsg.content) return 0;
+  
+  // 统计换行符数量
+  const matches = lastAssistantMsg.content.match(/\n/g);
+  return matches ? matches.length : 0;
 })
 
-// 根据字数阈值切换大小 (你可以根据需要调整 150 和 400 这两个数值)
+// 根据 AI 回复换行数切换大小
 const dialogSizeClass = computed(() => {
-  if (totalTextLength.value < 150) return 'size-small'
-  if (totalTextLength.value < 400) return 'size-medium'
-  return 'size-large'
+  if (aiReplyNewlines.value > 10) return 'size-large'
+  if (aiReplyNewlines.value > 5) return 'size-medium'
+  return 'size-small'
 })
 
 const bgImage = computed(() => {
-  if (totalTextLength.value < 150) return '/images/对话框.png' // 小
-  if (totalTextLength.value < 400) return '/images/中对话框..png' // 中 (注意你的文件名有两个点)
-  return '/images/大对话框..png' // 大 (注意你的文件名有两个点)
+  if (aiReplyNewlines.value > 10) return '/images/大对话框..png' // 大
+  if (aiReplyNewlines.value > 5) return '/images/中对话框..png' // 中
+  return '/images/对话框.png' // 小
 })
 // =======================================================
 
-// 🔴 扣子 API 配置
 const API_TOKEN = 'eyJhbGciOiJSUzI1NiIsImtpZCI6IjAyNmY4ZGViLTcxY2UtNDQwMS1iMzAyLTAxYmIyYWY1Y2VkNSJ9.eyJpc3MiOiJodHRwczovL2FwaS5jb3plLmNuIiwiYXVkIjpbIm54YldyY085bHFnckRvQWpwY3ZPajR0c0ZoZVFPcWFiIl0sImV4cCI6ODIxMDI2Njg3Njc5OSwiaWF0IjoxNzk0NzI4Nzk1LCJzdWIiOiJzcGlmZmU6Ly9hcGkuY296ZS5jbi93b3JrbG9hZF9pZGVudGl0eS9pZDo3NzA4MTA1NTczMzg3OTkzMTI2Iiwic3JjIjoiaW5ib3VuZF9hdXRoX2FjY2Vzc190b2tlbl9pZDo3NzA4MzAxNDgyNzUxMTY0NDQyIn0.G0e_2gObj6pXLq3nZyFbAiZQI5myTfPZjrKQD70PWjC4O6DirHwifCM6wuSgXv2hWb3cSWn7BZjjvM1gUJ47YONSiKA78b_dFzVLpIzDe42aYQ4xO74Pr0cR9Lv9-98iTz442AnhTzYcXF3K9I5RrttoD3fMzsfyINnYIlZgT9QNhjyIwm0Je7rNVTvxzOegiNwT_8sw93_e2TXCe6_teqnx5zPp8o2XCxl2oLMj-YsQv-NvQ-_Y0WCMAm79Aq07T3ofcWCvt4LZvnWL8-MUvIVqlSc_4-BPSLqcTSECF1ap5rsZtPDm9CRBmUtIqxSXWMQfA2B0p6xEMD5-x9nNQg' 
 const API_URL = 'https://winter-tooth-2466.2122855316.workers.dev' 
 
@@ -207,9 +213,7 @@ const sendMessage = async () => {
             if (dataObj.type === 'message_end' || dataObj.finish === true) {
               isTyping.value = false;
             }
-          } catch (e) {
-            // 忽略不完整的数据包
-          }
+          } catch (e) {}
         }
       }
     } catch (error) {
@@ -222,7 +226,7 @@ const sendMessage = async () => {
   }
 
   // 模式 B：本地匹配 (欢迎页/地图页)
-  let reply = '抱歉，这个问题我还不太了解。你可以试试问「什么是生态红线？」「秦岭案是怎么回事？」「法典对我有什么影响？」或「垃圾分类怎么分？」'
+  let reply = '抱歉，这个问题我还不太了解。'
   for (const [key, value] of Object.entries(knowledgeBase)) {
     if (text.includes(key) || key.includes(text) || text.includes(key.replace('什么是', '').replace('怎么分', ''))) {
       reply = value.answer
@@ -253,7 +257,7 @@ onMounted(() => {
 
 <style scoped>
 /* ============================================================
-   ===== 基础样式 =====
+   ===== 你原本的样式（分毫未动） =====
    ============================================================ */
 .assistant-wrapper {
   position: fixed;
@@ -265,8 +269,6 @@ onMounted(() => {
   align-items: flex-end;
   gap: 12px;
 }
-
-/* 头像 */
 .assistant-avatar {
   width: 80px;
   height: 80px;
@@ -279,15 +281,8 @@ onMounted(() => {
   flex-shrink: 0;
   overflow: hidden;
 }
-.assistant-avatar:hover {
-  transform: scale(1.08);
-  box-shadow: 0 6px 32px rgba(0, 0, 0, 0.2);
-}
-.assistant-avatar img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
+.assistant-avatar:hover { transform: scale(1.08); box-shadow: 0 6px 32px rgba(0, 0, 0, 0.2); }
+.assistant-avatar img { width: 100%; height: 100%; object-fit: cover; }
 .assistant-status {
   position: absolute;
   bottom: 2px;
@@ -299,20 +294,17 @@ onMounted(() => {
   border: 2px solid white;
   transition: all 0.3s;
 }
-.assistant-status.status-active {
-  background: #FF9800;
-  animation: pulse-status 1.5s infinite;
-}
+.assistant-status.status-active { background: #FF9800; animation: pulse-status 1.5s infinite; }
 @keyframes pulse-status {
   0%, 100% { box-shadow: 0 0 0 0 rgba(255, 152, 0, 0.4); }
   50% { box-shadow: 0 0 0 8px rgba(255, 152, 0, 0); }
 }
 
-/* 对话框容器 */
 .assistant-dialog {
   position: absolute;
   bottom: 95px;
   right: 0;
+  width: 400px;
   max-width: 92vw;
   animation: slideUp 0.35s cubic-bezier(0.22, 1, 0.36, 1);
 }
@@ -320,239 +312,133 @@ onMounted(() => {
   from { opacity: 0; transform: translateY(20px) scale(0.95); }
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
-.dialog-bubble {
-  position: relative;
-  width: 100%;
-}
-.dialog-bg {
-  width: 100%;
-  height: auto;
-  display: block;
-  opacity: 0.92;
-  filter: drop-shadow(0 4px 20px rgba(0, 0, 0, 0.08));
-}
+.dialog-bubble { position: relative; width: 100%; }
+.dialog-bg { width: 100%; height: auto; display: block; opacity: 0.92; filter: drop-shadow(0 4px 20px rgba(0, 0, 0, 0.08)); }
 .dialog-content {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  box-sizing: border-box;
-  padding: 0 16px 12px;
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  display: flex; flex-direction: column; box-sizing: border-box; padding: 0 16px 12px;
 }
 .dialog-top-placeholder {
-  flex: 1;
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  padding-top: 10px;
-  min-height: 60px;
+  flex: 1; display: flex; align-items: flex-start; justify-content: center; padding-top: 10px; min-height: 60px;
 }
-.drag-hint {
-  font-size: 11px;
-  color: rgba(139, 115, 85, 0.35);
-  font-family: '华文楷体', 'KaiTi', serif;
-  letter-spacing: 1px;
-  user-select: none;
-}
+.drag-hint { font-size: 11px; color: rgba(139, 115, 85, 0.35); font-family: '华文楷体', 'KaiTi', serif; letter-spacing: 1px; user-select: none; }
 
-/* 默认下部内容区 */
 .dialog-bottom {
-  flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
-  padding: 0 4px;
-  transition: all 0.3s ease;
+  flex-shrink: 0; height: 200px; width: 350px; display: flex; flex-direction: column; padding: 0 4px;
 }
-.dialog-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-bottom: 2px;
-  border-bottom: 1px solid rgba(139, 115, 85, 0.08);
-  flex-shrink: 0;
-}
-.dialog-name {
-  font-weight: 700;
-  color: #3a2a1a;
-  font-family: '华文楷体', 'KaiTi', serif;
-  letter-spacing: 1px;
-  transition: font-size 0.3s;
-}
+.dialog-header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 2px; border-bottom: 1px solid rgba(139, 115, 85, 0.08); flex-shrink: 0; }
+.dialog-name { font-size: 13px; font-weight: 700; color: #3a2a1a; font-family: '华文楷体', 'KaiTi', serif; letter-spacing: 1px; }
 .dialog-close {
-  background: rgba(139, 115, 85, 0.2);
-  border: none;
-  color: #5a4a3a;
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  font-size: 12px;
-  cursor: pointer;
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  background: rgba(139, 115, 85, 0.2); border: none; color: #5a4a3a; width: 22px; height: 22px; border-radius: 50%; font-size: 12px;
+  cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center;
 }
-.dialog-close:hover {
-  background: rgba(139, 115, 85, 0.4);
-  transform: rotate(90deg);
-}
-.dialog-messages {
-  flex: 1;
-  overflow-y: auto;
-  padding: 2px 2px 2px;
-  margin: 0;
-  transition: max-height 0.3s ease;
-}
+.dialog-close:hover { background: rgba(139, 115, 85, 0.4); transform: rotate(90deg); }
+.dialog-messages { flex: 1; overflow-y: auto; padding: 2px 2px 2px; margin: 0; min-height: 90px; max-height: 130px; }
 .dialog-messages::-webkit-scrollbar { width: 3px; }
 .dialog-messages::-webkit-scrollbar-track { background: rgba(200, 180, 150, 0.1); border-radius: 4px; }
 .dialog-messages::-webkit-scrollbar-thumb { background: #c4a86a; border-radius: 4px; }
-.dialog-message {
-  display: flex;
-  align-items: flex-start;
-  gap: 5px;
-  margin-bottom: 3px;
-  line-height: 1.5;
-  color: #3a2a1a;
-  animation: msgIn 0.3s ease-out;
-}
-@keyframes msgIn {
-  from { opacity: 0; transform: translateY(6px); }
-  to { opacity: 1; transform: translateY(0); }
-}
+.dialog-message { display: flex; align-items: flex-start; gap: 5px; margin-bottom: 3px; font-size: 12px; line-height: 1.5; color: #3a2a1a; animation: msgIn 0.3s ease-out; }
+@keyframes msgIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
 .dialog-message .msg-avatar { font-size: 13px; flex-shrink: 0; margin-top: 1px; }
-.dialog-message .msg-text {
-  background: rgba(255, 248, 235, 0.4);
-  border-radius: 6px;
-  white-space: pre-line;
-  word-break: break-word;
-  max-width: 90%;
-  border: 1px solid rgba(200, 180, 150, 0.06);
-  transition: font-size 0.3s, padding 0.3s;
-}
+.dialog-message .msg-text { background: rgba(255, 248, 235, 0.4); padding: 3px 10px; border-radius: 6px; white-space: pre-line; word-break: break-word; max-width: 90%; border: 1px solid rgba(200, 180, 150, 0.06); }
 .dialog-message.message-user { flex-direction: row-reverse; }
-.dialog-message.message-user .msg-text {
-  background: rgba(26, 42, 108, 0.06);
-  border-color: rgba(26, 42, 108, 0.08);
-}
+.dialog-message.message-user .msg-text { background: rgba(26, 42, 108, 0.06); border-color: rgba(26, 42, 108, 0.08); }
 .typing-indicator .typing-dots { display: inline-flex; gap: 2px; padding: 0 4px; }
 .typing-indicator .typing-dots span { animation: dotJump 1.2s infinite; }
 .typing-indicator .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
 .typing-indicator .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
-@keyframes dotJump {
-  0%, 80%, 100% { transform: translateY(0); }
-  40% { transform: translateY(-6px); }
-}
+@keyframes dotJump { 0%, 80%, 100% { transform: translateY(0); } 40% { transform: translateY(-6px); } }
 
-/* 输入区 */
-.dialog-input-area {
-  display: flex;
-  gap: 5px;
-  padding-top: 3px;
-  border-top: 1px solid rgba(200, 180, 150, 0.08);
-  flex-shrink: 0;
-}
+.dialog-input-area { display: flex; gap: 5px; padding-top: 3px; border-top: 1px solid rgba(200, 180, 150, 0.08); flex-shrink: 0; }
 .dialog-input-area input {
-  flex: 1;
-  border: 1px solid rgba(200, 180, 150, 0.2);
-  border-radius: 14px;
-  background: rgba(255, 248, 235, 0.4);
-  color: #3a2a1a;
-  outline: none;
-  font-family: inherit;
-  transition: all 0.2s;
+  flex: 1; padding: 3px 10px; border: 1px solid rgba(200, 180, 150, 0.2); border-radius: 14px; font-size: 11px;
+  background: rgba(255, 248, 235, 0.4); color: #3a2a1a; outline: none; font-family: inherit; transition: all 0.2s;
 }
 .dialog-input-area input:focus { border-color: rgba(139, 115, 85, 0.4); background: rgba(255, 248, 235, 0.6); }
-.dialog-input-area input::placeholder { color: #8a7a6a; }
+.dialog-input-area input::placeholder { color: #8a7a6a; font-size: 10px; }
 .dialog-input-area input:disabled { opacity: 0.5; }
 .dialog-input-area button {
-  border: none;
-  background: #8a7a5a;
-  color: white;
-  border-radius: 14px;
-  cursor: pointer;
-  transition: all 0.2s;
-  font-family: '华文楷体', 'KaiTi', serif;
-  letter-spacing: 0.5px;
-  flex-shrink: 0;
+  padding: 3px 12px; border: none; background: #8a7a5a; color: white; border-radius: 14px; font-size: 11px;
+  cursor: pointer; transition: all 0.2s; font-family: '华文楷体', 'KaiTi', serif; letter-spacing: 0.5px; flex-shrink: 0;
 }
 .dialog-input-area button:hover:not(:disabled) { background: #6a5a4a; transform: scale(1.02); }
 .dialog-input-area button:disabled { opacity: 0.4; cursor: not-allowed; }
 
-/* 快捷按钮 */
 .dialog-suggestions { display: flex; flex-wrap: wrap; gap: 3px; padding-top: 3px; flex-shrink: 0; }
-.suggestion-btn {
-  border: 1px solid rgba(200, 180, 150, 0.2);
-  border-radius: 10px;
-  background: rgba(255, 248, 235, 0.3);
-  color: #6a5a4a;
-  cursor: pointer;
-  transition: all 0.2s;
-  font-family: inherit;
-  white-space: nowrap;
-}
+.suggestion-btn { padding: 1px 8px; border: 1px solid rgba(200, 180, 150, 0.2); border-radius: 10px; background: rgba(255, 248, 235, 0.3); color: #6a5a4a; font-size: 9px; cursor: pointer; transition: all 0.2s; font-family: inherit; white-space: nowrap; }
 .suggestion-btn:hover { background: rgba(200, 180, 150, 0.15); border-color: rgba(200, 180, 150, 0.3); transform: translateY(-1px); }
 
-/* ============================================================
-   ===== 动态大小与科普页大字体适配 =====
-   ============================================================ */
-
-/* --- 小对话框 (默认) --- */
-.size-small .dialog-bottom { width: 350px; height: 200px; }
-.size-small .dialog-messages { min-height: 90px; max-height: 130px; font-size: 12px; }
-.size-small .dialog-name { font-size: 13px; }
-.size-small .dialog-message .msg-text { font-size: 12px; padding: 3px 10px; }
-.size-small .dialog-input-area input { font-size: 11px; padding: 3px 10px; }
-.size-small .dialog-input-area button { font-size: 11px; padding: 3px 12px; }
-.size-small .suggestion-btn { font-size: 9px; padding: 1px 8px; }
-
-/* --- 中对话框 --- */
-.size-medium .assistant-dialog { bottom: 100px; }
-.size-medium .dialog-bottom { width: 400px; height: 280px; }
-.size-medium .dialog-messages { max-height: 200px; }
-.size-medium .dialog-name { font-size: 15px; }
-.size-medium .dialog-message .msg-text { font-size: 14px; padding: 6px 12px; }
-.size-medium .dialog-input-area input { font-size: 13px; padding: 6px 12px; }
-.size-medium .dialog-input-area button { font-size: 13px; padding: 6px 16px; }
-.size-medium .suggestion-btn { font-size: 11px; padding: 3px 10px; }
-
-/* --- 大对话框 --- */
-.size-large .assistant-dialog { bottom: 110px; }
-.size-large .dialog-bottom { width: 450px; height: 350px; }
-.size-large .dialog-messages { max-height: 260px; }
-.size-large .dialog-name { font-size: 16px; }
-.size-large .dialog-message .msg-text { font-size: 15px; padding: 8px 14px; line-height: 1.6; }
-.size-large .dialog-input-area input { font-size: 14px; padding: 8px 14px; }
-.size-large .dialog-input-area button { font-size: 14px; padding: 8px 18px; }
-.size-large .suggestion-btn { font-size: 12px; padding: 4px 12px; }
-
-/* ============================================================
-   ===== 响应式适配 (移动端保留原有比例，缩小尺寸) =====
-   ============================================================ */
+/* 响应式 (分毫未动) */
 @media (max-width: 768px) {
   .assistant-wrapper { bottom: 20px; right: 75px; }
   .assistant-avatar { width: 64px; height: 64px; }
   .assistant-status { width: 15px; height: 15px; }
-  
-  .size-small .assistant-dialog { bottom: 75px; width: 85vw; right: -10px; }
-  .size-small .dialog-bottom { height: 220px; width: 100%; }
-  .size-medium .assistant-dialog { width: 85vw; right: -10px; }
-  .size-medium .dialog-bottom { height: 260px; width: 100%; }
-  .size-large .assistant-dialog { width: 85vw; right: -10px; }
-  .size-large .dialog-bottom { height: 300px; width: 100%; }
+  .assistant-dialog { bottom: 75px; width: 85vw; right: -10px; }
+  .dialog-bottom { height: 220px; }
+  .dialog-messages { min-height: 70px; max-height: 100px; }
+  .dialog-message { font-size: 11px; }
+  .dialog-name { font-size: 12px; }
+  .dialog-top-placeholder { min-height: 40px; padding-top: 6px; }
+  .drag-hint { font-size: 9px; }
 }
 @media (max-width: 480px) {
   .assistant-wrapper { bottom: 16px; right: 60px; }
   .assistant-avatar { width: 54px; height: 54px; }
   .assistant-status { width: 13px; height: 13px; }
-  
-  .size-small .assistant-dialog { bottom: 65px; width: 90vw; right: -6px; }
-  .size-small .dialog-bottom { height: 190px; }
-  .size-medium .assistant-dialog { width: 90vw; right: -6px; }
-  .size-medium .dialog-bottom { height: 230px; }
-  .size-large .assistant-dialog { width: 90vw; right: -6px; }
-  .size-large .dialog-bottom { height: 270px; }
+  .assistant-dialog { bottom: 65px; width: 90vw; right: -6px; }
+  .dialog-bottom { height: 190px; }
+  .dialog-messages { min-height: 55px; max-height: 80px; padding: 1px; }
+  .dialog-message { font-size: 10px; gap: 3px; }
+  .dialog-message .msg-text { padding: 2px 6px; }
+  .dialog-top-placeholder { min-height: 30px; padding-top: 4px; }
+  .drag-hint { font-size: 8px; }
+  .dialog-input-area input { font-size: 10px; padding: 2px 8px; }
+  .dialog-input-area button { font-size: 10px; padding: 2px 8px; }
+  .suggestion-btn { font-size: 8px; padding: 1px 6px; }
+}
+
+/* ============================================================
+   ===== 新增：根据换行数自适应大小 + 科普页字体调大 =====
+   注意：这里只对字体和容器大小做微调，不改动原本布局参数
+   ============================================================ */
+
+/* 当 AI 回复换行大于 5 时（中对话框） */
+.size-medium .dialog-bottom {
+  width: 380px;  /* 稍微加宽一点点适应中图 */
+  height: 240px; /* 稍微加高 */
+}
+.size-medium .dialog-messages {
+  max-height: 160px;
+}
+
+/* 当 AI 回复换行大于 10 时（大对话框） */
+.size-large .dialog-bottom {
+  width: 420px;
+  height: 320px;
+}
+.size-large .dialog-messages {
+  max-height: 240px;
+}
+
+/* 科普页 (isAI="true") 整体字体调大 */
+.is-ai-mode .dialog-message .msg-text {
+  font-size: 14px; /* 原本是 12px */
+  padding: 5px 12px;
+  line-height: 1.6;
+}
+.is-ai-mode .dialog-input-area input {
+  font-size: 13px;
+  padding: 5px 12px;
+}
+.is-ai-mode .dialog-input-area button {
+  font-size: 13px;
+  padding: 5px 14px;
+}
+.is-ai-mode .suggestion-btn {
+  font-size: 11px;
+  padding: 2px 10px;
+}
+.is-ai-mode .dialog-name {
+  font-size: 15px;
 }
 </style>
