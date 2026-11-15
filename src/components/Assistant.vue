@@ -211,6 +211,8 @@ const handleCozeMessage = (event) => {
     }, COZE_WEB_SDK_ORIGIN);
   }
 
+  console.log('收到扣子消息:', data.type, data);
+
   // Token 过期
   if (data.type === 'TOKEN_EXPIRED') {
     iframeRef.value.contentWindow.postMessage({
