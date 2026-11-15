@@ -11,7 +11,7 @@
     <div class="assistant-dialog" v-show="dialogVisible" @click.stop>
       <div class="dialog-bubble">
         <!-- 背景图 -->
-        <img src="/images/对话框大.png" class="dialog-bg" alt="对话框" />
+        <img src="/images/对话框长.png" class="dialog-bg" alt="对话框" />
 
         <!-- 内容区域 - 固定在下半部分 -->
         <div class="dialog-content">
@@ -349,7 +349,7 @@ onMounted(() => {
 }
 .dialog-bottom {
   flex-shrink: 0;
-  height: 200px;
+  height: 600px;
   width: 350px;
   display: flex;
   flex-direction: column;
