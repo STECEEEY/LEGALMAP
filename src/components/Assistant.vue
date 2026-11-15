@@ -320,6 +320,9 @@ onMounted(() => {
   display: block;
   opacity: 0.92;
   filter: drop-shadow(0 4px 20px rgba(0, 0, 0, 0.08));
+
+  transform: scale(1.2); 
+  transform-origin: bottom center;
 }
 .dialog-content {
   position: absolute;
