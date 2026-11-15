@@ -161,56 +161,53 @@ const sendMessage = async () => {
       const decoder = new TextDecoder()
       let replyContent = ''
 
-              // 🔴 新增一个缓冲区变量，用来存半截数据
-        let buffer = '';
+      // 🔴 终极修复版：处理断包和解析
+      let buffer = ''; // 用来暂存没传完的半截数据
 
-        while (true) {
-          const { done, value } = await reader.read()
-          if (done) break
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
 
-          // 解码并追加到缓冲区
-          buffer += decoder.decode(value, { stream: true })
+        // 1. 解码并拼接到缓冲区（stream: true 保证多字节汉字不会被切坏）
+        buffer += decoder.decode(value, { stream: true })
 
-          // 按换行符切分
-          const lines = buffer.split('\n')
-          
-          // 最后一段可能是不完整的半截数据，留在缓冲区里下次用
-          buffer = lines.pop() || '' 
+        // 2. 按换行符切分，最后一部分可能是不完整的，必须留在 buffer 里
+        const lines = buffer.split('\n')
+        buffer = lines.pop() || '' 
 
-          for (const line of lines) {
-            const trimmedLine = line.trim()
-            // 注意：这里不仅要过滤以 data: 开头的，还要过滤掉空行和 event: 开头的
-            if (!trimmedLine.startsWith('data:')) continue;
+        // 3. 遍历已经完整的每一行
+        for (const line of lines) {
+          const trimmedLine = line.trim()
+          if (!trimmedLine.startsWith('data:')) continue; // 过滤掉 event: message 等无用行
 
-            const jsonStr = trimmedLine.replace('data:', '').trim()
-            if (jsonStr === '[DONE]' || jsonStr === '') continue;
+          const jsonStr = trimmedLine.replace('data:', '').trim()
+          if (jsonStr === '[DONE]' || jsonStr === '') continue;
 
-            try {
-              const dataObj = JSON.parse(jsonStr)
-              
-              // 🔴 核心修改：根据真实抓包结果提取文字
-              let msgContent = '';
-              if (dataObj.content && dataObj.content.answer) {
-                msgContent = dataObj.content.answer;
-              }
-
-              // 如果提取到了文字，就拼接到屏幕上
-              if (msgContent) {
-                replyContent += msgContent
-                messages.value[currentMsgIndex].content = replyContent
-                scrollToBottom()
-              }
-
-              // 判断是否结束（当 finish 为 true 且 type 为 message_end 时）
-              if (dataObj.type === 'message_end') {
-                 isTyping.value = false;
-              }
-
-            } catch (e) {
-              // 忽略半截数据导致的解析错误，因为下次循环会拼全
+          try {
+            const dataObj = JSON.parse(jsonStr)
+            
+            // 4. 提取 answer 字段的文字
+            let msgContent = '';
+            if (dataObj.content && dataObj.content.answer) {
+              msgContent = dataObj.content.answer;
             }
+
+            // 5. 渲染到屏幕上
+            if (msgContent) {
+              replyContent += msgContent
+              messages.value[currentMsgIndex].content = replyContent
+              scrollToBottom()
+            }
+
+            // 6. 判断流是否结束
+            if (dataObj.type === 'message_end' || dataObj.finish === true) {
+              isTyping.value = false;
+            }
+          } catch (e) {
+            // 如果解析报错，说明这行依然不完整，直接忽略，等下一轮拼全
           }
         }
+      }
     } catch (error) {
       console.error('AI 请求失败:', error)
       messages.value[currentMsgIndex].content = '网络开小差了，请稍后再试。'
