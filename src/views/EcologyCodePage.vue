@@ -30,7 +30,6 @@
       <div class="ink-decoration ink-right"></div>
     </div>
 
-    <Assistant />
     <!-- 卷轴弹窗 -->
     <ScrollPopup :show="showPopup" @close="closePopup" />
 
