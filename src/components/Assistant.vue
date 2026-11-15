@@ -247,6 +247,16 @@ watch(messages, () => { scrollToBottom() }, { deep: true })
 onMounted(() => {
   // 挂载监听器
   window.addEventListener('message', handleCozeMessage)
+
+  //测试输出
+  console.log('小助手组件挂载，iframe 当前状态：', iframeRef.value);
+  
+  if (iframeRef.value) {
+    iframeRef.value.onload = () => {
+      console.log('✅ 扣子 sdk.coze.site 加载完成！');
+    };
+  }
+  //---测试over
   
   // 键盘 Esc 关闭
   document.addEventListener('keydown', (e) => {
