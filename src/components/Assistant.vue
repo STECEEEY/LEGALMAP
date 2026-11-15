@@ -404,7 +404,7 @@ onMounted(() => {
   align-items: flex-start;
   gap: 5px;
   margin-bottom: 3px;
-  font-size: 12px;
+  font-size: 14px;
   line-height: 1.5;
   color: #3a2a1a;
   animation: msgIn 0.3s ease-out;
@@ -448,7 +448,7 @@ onMounted(() => {
   padding: 3px 10px;
   border: 1px solid rgba(200, 180, 150, 0.2);
   border-radius: 14px;
-  font-size: 11px;
+  font-size: 14px;
   background: rgba(255, 248, 235, 0.4);
   color: #3a2a1a;
   outline: none;
@@ -464,7 +464,7 @@ onMounted(() => {
   background: #8a7a5a;
   color: white;
   border-radius: 14px;
-  font-size: 11px;
+  font-size: 14px;
   cursor: pointer;
   transition: all 0.2s;
   font-family: '华文楷体', 'KaiTi', serif;
@@ -480,7 +480,7 @@ onMounted(() => {
   border-radius: 10px;
   background: rgba(255, 248, 235, 0.3);
   color: #6a5a4a;
-  font-size: 9px;
+  font-size: 14px;
   cursor: pointer;
   transition: all 0.2s;
   font-family: inherit;
