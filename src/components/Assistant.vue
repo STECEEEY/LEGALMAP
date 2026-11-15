@@ -222,23 +222,39 @@ const handleCozeMessage = (event) => {
   }
 
   // 接收 AI 回答
-  if (data.type === 'MESSAGE_RECEIVED') {
-    const replyContent = data.payload?.message?.content || ''
-    if (!replyContent) return;
-
-    if (data.payload?.is_final) {
-      isTyping.value = false // AI 回答完毕，关闭打字动画
-    }
-
-    // 打字机流式输出效果
-    const lastMsg = messages.value[messages.value.length - 1]
-    if (lastMsg && lastMsg.role === 'assistant' && !lastMsg.isStatic) {
-       lastMsg.content = replyContent
-    } else {
-       messages.value.push({ role: 'assistant', content: replyContent })
-    }
-    scrollToBottom()
+  //测试
+  // 不管它 type 叫啥，只要里面包含文本，就打印出来！
+if (data.payload && data.payload.message && data.payload.message.content) {
+  // 强行关掉转圈动画
+  isTyping.value = false; 
+  
+  const replyContent = data.payload.message.content;
+  const lastMsg = messages.value[messages.value.length - 1];
+  
+  if (lastMsg && lastMsg.role === 'assistant' && !lastMsg.isStatic) {
+     lastMsg.content = replyContent;
+  } else {
+     messages.value.push({ role: 'assistant', content: replyContent });
   }
+  scrollToBottom();
+}
+  // if (data.type === 'MESSAGE_RECEIVED') {
+  //   const replyContent = data.payload?.message?.content || ''
+  //   if (!replyContent) return;
+
+  //   if (data.payload?.is_final) {
+  //     isTyping.value = false // AI 回答完毕，关闭打字动画
+  //   }
+
+  //   // 打字机流式输出效果
+  //   const lastMsg = messages.value[messages.value.length - 1]
+  //   if (lastMsg && lastMsg.role === 'assistant' && !lastMsg.isStatic) {
+  //      lastMsg.content = replyContent
+  //   } else {
+  //      messages.value.push({ role: 'assistant', content: replyContent })
+  //   }
+  //   scrollToBottom()
+  // }
 }
 
 // 9. 生命周期
